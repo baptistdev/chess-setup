@@ -294,32 +294,32 @@ exit /b
 
   @echo off
 
-  echo @echo off>runasadmin.bat
-  echo :: BatchGotAdmin>>runasadmin.bat
-  echo :------------------------------------->>runasadmin.bat
-  echo REM  --^> Check for permissions>>runasadmin.bat
-  echo ^>nul 2^>^&1 "%%SYSTEMROOT%%\system32\cacls.exe" "%%SYSTEMROOT%%\system32\config\system">>runasadmin.bat
-  echo REM -- If error flag set, we do not have admin.>>runasadmin.bat
-  echo if '%%errorlevel%%' NEQ '0' (>>runasadmin.bat
-  echo     echo Requesting administrative privileges...>>runasadmin.bat
-  echo     goto UACPrompt>>runasadmin.bat
-  echo ) else ( goto gotAdmin )>>runasadmin.bat
+  echo @echo off>%instanceRoot%\tmp\runasadmin.bat
+  echo :: BatchGotAdmin>>%instanceRoot%\tmp\runasadmin.bat
+  echo :------------------------------------->>%instanceRoot%\tmp\runasadmin.bat
+  echo REM  --^> Check for permissions>>%instanceRoot%\tmp\runasadmin.bat
+  echo ^>nul 2^>^&1 "%%SYSTEMROOT%%\system32\cacls.exe" "%%SYSTEMROOT%%\system32\config\system">>%instanceRoot%\tmp\runasadmin.bat
+  echo REM -- If error flag set, we do not have admin.>>%instanceRoot%\tmp\runasadmin.bat
+  echo if '%%errorlevel%%' NEQ '0' (>>%instanceRoot%\tmp\runasadmin.bat
+  echo     echo Requesting administrative privileges...>>%instanceRoot%\tmp\runasadmin.bat
+  echo     goto UACPrompt>>%instanceRoot%\tmp\runasadmin.bat
+  echo ) else ( goto gotAdmin )>>%instanceRoot%\tmp\runasadmin.bat
 
-  echo :UACPrompt>>runasadmin.bat
-  echo     echo Set UAC = CreateObject^^("Shell.Application"^^) ^> "%%temp%%\getadmin.vbs">>runasadmin.bat
-  echo     set params ^= %%^*^:^"^=^"^">>runasadmin.bat
-  echo     echo UAC.ShellExecute "cmd.exe", "/c %%~s0 %%params%%", "", "runas", 1 ^>^> "%%temp%%\getadmin.vbs">>runasadmin.bat
-  echo     "%%temp%%\getadmin.vbs">>runasadmin.bat
-  echo     del "%%temp%%\getadmin.vbs">>runasadmin.bat
-  echo     exit /B>>runasadmin.bat
-  echo :gotAdmin>>runasadmin.bat
-  echo     pushd "%%CD%%">>runasadmin.bat
-  echo     CD /D "%%~dp0">>runasadmin.bat
-  echo :-------------------------------------->>runasadmin.bat
+  echo :UACPrompt>>%instanceRoot%\tmp\runasadmin.bat
+  echo     echo Set UAC = CreateObject^^("Shell.Application"^^) ^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
+  echo     set params ^= %%^*^:^"^=^"^">>%instanceRoot%\tmp\runasadmin.bat
+  echo     echo UAC.ShellExecute "cmd.exe", "/c %%~s0 %%params%%", "", "runas", 1 ^>^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
+  echo     "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
+  echo     del "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
+  echo     exit /B>>%instanceRoot%\tmp\runasadmin.bat
+  echo :gotAdmin>>%instanceRoot%\tmp\runasadmin.bat
+  echo     pushd "%%CD%%">>%instanceRoot%\tmp\runasadmin.bat
+  echo     CD /D "%%~dp0">>%instanceRoot%\tmp\runasadmin.bat
+  echo :-------------------------------------->>%instanceRoot%\tmp\runasadmin.bat
 
-  echo %*>>runasadmin.bat
+  echo %*>>%instanceRoot%\tmp\runasadmin.bat
 
-  call c:\elixir\runasadmin.bat 
+  call %instanceRoot%\tmp\runasadmin.bat
 
 exit /b
 
@@ -492,31 +492,15 @@ exit /b
 exit /b
 
 :XAMPPSERVICESSTART
-    echo %xamppinstllpath%\apache
+    echo Staring xampp services ...
     cd %xamppinstllpath%\apache    
-    REM echo start /WAIT runas /savecred /user:baptistmis "cmd /c %xamppinstllpath%\apache\apache_installservice.bat"
-    
-    @echo pause> %instanceRoot%\tmp\startapache.bat
-    @echo     cd %xamppinstllpath%\apache>> %instanceRoot%\tmp\startapache.bat
-    @echo     echo starting...>> %instanceRoot%\tmp\startapache.bat
-    @echo     pause>> %instanceRoot%\tmp\startapache.bat
-    @echo     CALL %xamppinstllpath%\apache\apache_installservice.bat>> %instanceRoot%\tmp\startapache.bat
-  
-    echo start /WAIT runas /savecred /user:admin "cmd /c C:\elixir\instances\elixir_01\tmp\startapache.bat"
-    REM start /WAIT runas /savecred /user:admin "cmd /c C:\elixir\instances\elixir_01\tmp\startapache.bat"
-    
-    cd %xamppinstllpath%\mysql
-    REM echo start /WAIT runas /savecred /user:admin "cmd /c %xamppinstllpath%\mysql\mysql_installservice.bat"
-    @echo pause> %instanceRoot%\tmp\startmysql.bat
-    @echo     cd %xamppinstllpath%\mysql>> %instanceRoot%\tmp\startmysql.bat
-    @echo     echo starting...>> %instanceRoot%\tmp\startmysql.bat
-    @echo     pause>> %instanceRoot%\tmp\startmysql.bat
-    @echo     CALL %xamppinstllpath%\mysql\mysql_installservice.bat>> %instanceRoot%\tmp\startmysql.bat
+    CALL :RUNASADMINISTRATOR %xamppinstllpath%\apache\apache_installservice.bat
 
-    REM start /WAIT runas /savecred /user:admin "cmd /c C:\elixir\instances\elixir_01\tmp\startmysql.bat"
+    cd %xamppinstllpath%\mysql
+    CALL :RUNASADMINISTRATOR %xamppinstllpath%\mysql\mysql_installservice.bat
 
     REM call :CHECKRUNNABLE %2
-    REM start /WAIT runas.exe /savecred /user:baptistmis %xamppinstllpath%\mysql\bin\mysql -uroot -p mysql -e "select * from user;"
+    start /WAIT  %xamppinstllpath%\mysql\bin\mysql -uroot -p mysql -e "select * from user;"
     if %ERRORLEVEL%==0 (
       echo mysql Start Successful 
     ) else (
