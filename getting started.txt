@@ -1,0 +1,17 @@
+
+
+Windows
+1) Identify a root folder for your development Environment.
+	Eg: D:\dev - You can do this on the C drive as well.
+2) Create a new folder called elixir.
+	Eg: D:\dev\elixir
+3) Download the install.bat file from [github/bbh/setup]
+4) Open a windows cmd shell (Administrator if you want the autoinstall of dependencies and windows build tools)
+	Note : Nodegyp and python are required dependencies.
+
+5) Run install.bat
+	-- Note PYTHON Path needs to be manually added.
+	-- Note : Git and Python path is not updated until you close the shell and reopen.
+	-- You may need to exit and reopen the shell until these are properly installed.
+	
+6) 
