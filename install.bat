@@ -8,7 +8,6 @@ echo -----------------------------------
 call :TITLE "     BBH Elixir Installer "
 echo -----------------------------------
 
-
 set isGitBash=false
 call :checkIsGitBash
 echo Gitbash=%isGitBash%
@@ -98,7 +97,7 @@ if exist %instanceRoot%\setup (
     echo     Folder Created
 )
 
-set runfile=%instanceRoot%\tmp\run.txt
+set runfile=%instanceRoot%\tmp\run.log.bat
 echo %runfile%
 REM xampp folder
 set xamppinstllpath=c:\xampp
@@ -108,13 +107,31 @@ set javainstaller=openjdk-13.0.1_windows-x64_bin
 set javainstllpath=%root%\runtime\%javainstaller%
 set javapath=%javainstllpath%\%javaversion%\bin
 
+
+set step[INSTALLWINBUILDTOOLS]=false
+set step[RELAUNCHWITHENV]=false
+set step[PREREQS]=false
+REM Load previosly completed steps as skip config
 if exist %runfile% (
-  REM Already running so lets not get into a loop...
+  echo Loading Runtime State
+  CALL %runfile%
+) else (
+  echo No Previous Run detected.
+)
+:: END CONFIG ---------------------------------------------------------
+
+CALL :INITFORRUNASADMINISTRATOR
+
+
+if "%step[PREREQS]%"=="true" (
+  echo Prerequistes install already completed.
   pause
+  REM PB :TODO -- We still need to check if we are in bash before running the BASHSTEPS.
   call :BASHSTEPS 
 
 ) else ( mkdir %instanceRoot%\tmp
-  echo started>%instanceRoot%\tmp\run.txt
+  pause
+  echo set step[STARTED]=true>%instanceRoot%\tmp\run.log.bat
 
   REM set xamppinstllpath=%root%\runtime\xampp
   if exist "%xamppinstllpath%" (
@@ -152,37 +169,74 @@ if exist %runfile% (
   call :CHECKANDINSTALL code https://vscode-update.azurewebsites.net/latest/win32-x64/stable %mypath%\Downloads\vscode-win32-x64-latest-stable.exe
   REM call :CHECKANDINSTALL .net https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/NDP461-KB3102436-x86-x64-AllOS-ENU.exe %mypath%\Downloads\NDP461-KB3102436-x86-x64-AllOS-ENU.exe
   REM call :CHECKANDINSTALL python https://www.python.org/ftp/python/3.6.5/python-3.6.5-amd64.exe %mypath%\Downloads\python-3.6.5-amd64.exe
-  call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
+  echo step[PREREQS] = %step[PREREQS]%
+  pause
+  if "%step[RELAUNCHWITHENV]%"=="true" (
+    echo path=%path%
+    pause
+    call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
   
-  echo xamppinstllpath %xamppinstllpath%
-  call :CHECKANDINSTALLXAMPP %xamppinstllpath%\xampp-control.exe xampp https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER
-  
-  call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
-  
+    REM PB : TODO -- Esure npm is available with path already set.
+    call :RUNSTEP INSTALLWINBUILDTOOLS
+    
+    echo xamppinstllpath %xamppinstllpath%
+    call :CHECKANDINSTALLXAMPP %xamppinstllpath%\xampp-control.exe xampp https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER
+    
+    call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
+    
+    call :EXECQUEUEDFORRUNASADMINISTRATOR
+    REM PB : TODO SHELLEXECUTE DOESNT WAIT...
+    pause
 
-  echo checking gitbashrun
-  if exist "%instanceRoot%\tmp\gitbashrun.txt" (
-    echo git-bash process already launched
-  ) else (
-    if "true"=="%isGitBash%" (
-      call :BASHSTEPS
-    ) else ( REM Switch to a git bash shell to continue
-      cd %root%
-      echo started>%instanceRoot%\tmp\gitbashrun.txt
-      echo "C:\Program Files\Git\git-bash" -c "/c/elixir-tt/setup/install.bat"
-      call "C:\Program Files\Git\git-bash" -c "/c/elixir-tt/setup/install.bat"
-      del %instanceRoot%\tmp\gitbashrun.txt
+    echo PREREQS Install completed
+
+    set step[PREREQS]=true
+    echo set step[PREREQS]=true>%instanceRoot%\tmp\run.log.bat
+    
+    echo checking gitbashrun
+    if exist "%instanceRoot%\tmp\gitbashrun.log.bat" (
+      echo git-bash process already launched
+    ) else (
+      pause
+      if "true"=="%isGitBash%" (
+        call :BASHSTEPS
+      ) else ( REM Switch to a git bash shell to continue
+        cd %root%
+        echo started>%instanceRoot%\tmp\gitbashrun.log.bat
+        echo "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
+        call "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
+        del %instanceRoot%\tmp\gitbashrun.log.bat
+      )
     )
+  ) else ( 
+
+    REM if "%step[RELAUNCHWITHENV]%"=="true" (
+    REM   echo Already relaunched.
+    REM ) else (
+      :: Preset paths that dont get set automatically. And are not available until relaunch.
+      echo setx path "%%path%%;C:\python27;%javapath%">%instanceroot%/tmp/setenv.bat
+      echo pause>>%instanceroot%/tmp/setenv.bat
+      start /w cmd /c %instanceroot%/tmp/setenv.bat
+      set step[RELAUNCHWITHENV]=true
+      echo set step[RELAUNCHWITHENV]=true>>%runfile%
+
+      echo %instanceroot%\setup\install.bat
+      pause
+      REM call "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
+
+      start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
+      REM start /w "%windir%\explorer.exe" "%instanceroot%\setup\install.bat"
+      REM start /i /wait cmd /k %instanceroot%\setup\install.bat
+    REM )
   )
+
+  
 )
 
-del %instanceRoot%\tmp\run.txt
 GOTO :EOF
 
 
 :BASHSTEPS
-    call :INSTALLWINBUILDTOOLS
-    pause
     echo -----------------------------------------------------  
     call :TITLE " Installing BBH Elixir Instance %instancename%"
     echo -----------------------------------------------------
@@ -229,7 +283,7 @@ GOTO :EOF
         ) 
 
       cd %instanceRoot%\qms
-      git checkout genericMRWip
+      git checkout genericMRWip --force
       REM npm rebuild node-sass
       
       REM NPM INSTALL
@@ -289,9 +343,16 @@ GOTO :EOF
 exit /b
 
 
+
 :RUNASADMINISTRATOR ...
 
+  CALL :INITFORRUNASADMINISTRATOR
+  CALL :QUEUEFORRUNASADMINISTRATOR %*
+  CALL :EXECQUEUEDFORRUNASADMINISTRATOR
 
+exit /b
+
+:INITFORRUNASADMINISTRATOR
   @echo off
 
   echo @echo off>%instanceRoot%\tmp\runasadmin.bat
@@ -317,13 +378,15 @@ exit /b
   echo     CD /D "%%~dp0">>%instanceRoot%\tmp\runasadmin.bat
   echo :-------------------------------------->>%instanceRoot%\tmp\runasadmin.bat
 
-  echo %*>>%instanceRoot%\tmp\runasadmin.bat
-
-  call %instanceRoot%\tmp\runasadmin.bat
-
 exit /b
 
+:QUEUEFORRUNASADMINISTRATOR ...
+  echo %*>>%instanceRoot%\tmp\runasadmin.bat
+exit /b
 
+:EXECQUEUEDFORRUNASADMINISTRATOR
+  START /W cmd.exe /c %instanceRoot%\tmp\runasadmin.bat
+exit /b
 
 REM Check if app is installed
 :CHECKRUNNABLE <app>
@@ -362,13 +425,21 @@ exit /b
 exit /b
 ::**************************************************************************
 
-:INSTALLWINBUILDTOOLS
-
-  CALL :RUNASADMINISTRATOR Powershell.exe npm install -g windows-build-tools
-
+:: Run step if not already run.
+:RUNSTEP <STEP>
+  if "!step[%1]!"=="true" (
+    echo Skipping %1 already run. Use force to rerun all again.
+  ) else (
+    CALL :%1
+  )
 exit /b
 
-
+:INSTALLWINBUILDTOOLS
+    CALL :QUEUEFORRUNASADMINISTRATOR Powershell.exe npm install -g windows-build-tools
+    set step[INSTALLWINBUILDTOOLS]=true
+    echo set step[INSTALLWINBUILDTOOLS]=true>>%runfile%
+  
+exit /b
 
 :CHECKANDINSTALLXAMPP <runnablename> <name> <url> <DownloadedFile> <installer>
   echo Detecting %1
@@ -408,7 +479,6 @@ exit /b
 :JAVAINSTALLER <File> <name> <path> <notinstalled>
     echo  javainstllpath=%javainstllpath%
     unzip %1 -d %javainstllpath%
-    setx path "%path%;%javapath%" 
     echo %path%
     call :CHECKRUNNABLE %2
     if "%output%"=="true" (
@@ -492,21 +562,31 @@ exit /b
 exit /b
 
 :XAMPPSERVICESSTART
-    echo Staring xampp services ...
-    cd %xamppinstllpath%\apache    
-    CALL :RUNASADMINISTRATOR %xamppinstllpath%\apache\apache_installservice.bat
+  call :QUEUESTARTAPACHE
+  call :QUEUESTARTMYSQL
 
-    cd %xamppinstllpath%\mysql
-    CALL :RUNASADMINISTRATOR %xamppinstllpath%\mysql\mysql_installservice.bat
-
-    REM call :CHECKRUNNABLE %2
-    start /WAIT  %xamppinstllpath%\mysql\bin\mysql -uroot -p mysql -e "select * from user;"
-    if %ERRORLEVEL%==0 (
-      echo mysql Start Successful 
-    ) else (
-      CALL : MYSQL Service Start ERROR "  INSTALL FAILED %1"
-    )
+    REM PB : TODO -- These service start verification should happen after the are actually started.
+    REM Need to move these to start services and check .... or into the queue...
+    REM start /WAIT  %xamppinstllpath%\mysql\bin\mysql -uroot -p mysql -e "select * from user;"
+    REM if %ERRORLEVEL%==0 (
+    REM   echo mysql Start Successful 
+    REM ) else (
+    REM   CALL : MYSQL Service Start ERROR "  INSTALL FAILED %1"
+    REM )
 exit /b
+
+:QUEUESTARTAPACHE
+    CALL :QUEUEFORRUNASADMINISTRATOR echo Starting Apache Service
+    CALL :QUEUEFORRUNASADMINISTRATOR cd %xamppinstllpath%\apache    
+    CALL :QUEUEFORRUNASADMINISTRATOR CALL %xamppinstllpath%\apache\apache_installservice.bat
+exit /b
+
+:QUEUESTARTMYSQL
+    CALL :QUEUEFORRUNASADMINISTRATOR echo Starting Mysql Service
+    CALL :QUEUEFORRUNASADMINISTRATOR cd %xamppinstllpath%\mysql
+    CALL :QUEUEFORRUNASADMINISTRATOR CALL %xamppinstllpath%\mysql\mysql_installservice.bat
+exit /b
+
 
 
 :GITCLONE <from> <to> <repo>
@@ -601,7 +681,23 @@ echo ^<ESC^>[7m and nested ^<ESC^>[31m [7mbefore [31mnested[0m
 echo ^<ESC^>[31m and nested ^<ESC^>[7m [31mbefore [7mnested[0m
 exit /b
 
+:: Lookup an array of values.
+REM set step[AAA]=true
+REM set step[BBB]=false
+REM set step[CCC]=true
 
-GOTO :EOF
+REM for %%a in (AAA BBB CCC) do (
+REM   echo Looking up step[%%a]
+REM   CALL :LOOKUP %%a
+REM )
+
+REM GOTO :EOF
+
+REM :LOOKUP <name>
+REM   for /F %%a in ('echo step[%1]') do echo !%%a!
+REM exit /b
 
 :EOF
+
+
+
