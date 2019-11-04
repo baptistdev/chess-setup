@@ -478,6 +478,8 @@ exit /b
 
 :JAVAINSTALLER <File> <name> <path> <notinstalled>
     echo  javainstllpath=%javainstllpath%
+    mkdir  %root%\runtime\openjdk-13.0.1_windows-x64_bin
+    echo unzip %1 -d %javainstllpath%
     unzip %1 -d %javainstllpath%
     echo %path%
     call :CHECKRUNNABLE %2
