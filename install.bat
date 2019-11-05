@@ -19,6 +19,8 @@ if ""=="%1" ( set instancename=elixir_01
   ) else ( set instancename=%1
   )
 set instanceRoot=%root%\instances\%instancename%
+mkdir %instanceRoot%
+mkdir %instanceRoot%\tmp
 echo instanceRoot = %instanceRoot%
 echo root = %root%
 
@@ -75,17 +77,18 @@ if exist %instanceRoot%\config.bat (
   echo     User : %remoteREPOHTTPSUser% 
   echo     Pwd  : %remoteREPOHTTPSPwd% 
 
-  @echo set localREPO=%localREPO%> %instanceRoot%\config.bat
-  @echo     set localREPOUNCUser=%localREPOUNCUser%>> %instanceRoot%\config.bat
-  @echo     set localREPOUNCPwd=%localREPOUNCPwd%>> %instanceRoot%\config.bat
-  @echo     set gitUser=%gitUser%>> %instanceRoot%\config.bat
-  @echo     set gitEmail=%gitEmail%>> %instanceRoot%\config.bat
+  @echo set localREPO=%localREPO%>%instanceRoot%\config.bat
+  @echo     set localREPOUNCUser=%localREPOUNCUser%>>%instanceRoot%\config.bat
+  echo localREPOUNCUser = %instanceRoot%
+  @echo     set localREPOUNCPwd=%localREPOUNCPwd%>>%instanceRoot%\config.bat
+  @echo     set gitUser=%gitUser%>>%instanceRoot%\config.bat
+  @echo     set gitEmail=%gitEmail%>>%instanceRoot%\config.bat
 
-  @echo set remoteREPO=%remoteREPO%>> %instanceRoot%\config.bat
-  @echo     set remoteREPOHTTPSUser=%remoteREPOHTTPSUser%>> %instanceRoot%\config.bat
-  @echo     set remoteREPOHTTPSPwd=%remoteREPOHTTPSPwd%>> %instanceRoot%\config.bat
+  @echo set remoteREPO=%remoteREPO%>>%instanceRoot%\config.bat
+  @echo     set remoteREPOHTTPSUser=%remoteREPOHTTPSUser%>>%instanceRoot%\config.bat
+  @echo     set remoteREPOHTTPSPwd=%remoteREPOHTTPSPwd%>>%instanceRoot%\config.bat
 
-  @echo set instancename=%instancename%>> %instanceRoot%\config.bat
+  @echo set instancename=%instancename%>>%instanceRoot%\config.bat
 
 )
 
@@ -129,8 +132,7 @@ if "%step[PREREQS]%"=="true" (
   REM PB :TODO -- We still need to check if we are in bash before running the BASHSTEPS.
   call :BASHSTEPS 
 
-) else ( mkdir %instanceRoot%\tmp
-  pause
+) else ( 
   echo set step[STARTED]=true>%instanceRoot%\tmp\run.log.bat
 
   REM set xamppinstllpath=%root%\runtime\xampp
