@@ -19,6 +19,7 @@ if ""=="%1" ( set instancename=elixir_01
   ) else ( set instancename=%1
   )
 set instanceRoot=%root%\instances\%instancename%
+mkdir %instanceRoot%
 echo instanceRoot = %instanceRoot%
 echo root = %root%
 
@@ -89,14 +90,6 @@ if exist %instanceRoot%\config.bat (
 
 )
 
-echo Using Instance Setup Folder : 
-if exist %instanceRoot%\setup (
-    echo   %instanceRoot%\setup
-    echo     Already exists
-) else (  MKDIR %instanceRoot%\setup
-    echo     Folder Created
-)
-
 set runfile=%instanceRoot%\tmp\run.log.bat
 echo %runfile%
 REM xampp folder
@@ -111,6 +104,9 @@ set javapath=%javainstllpath%\%javaversion%\bin
 set step[INSTALLWINBUILDTOOLS]=false
 set step[RELAUNCHWITHENV]=false
 set step[PREREQS]=false
+set step[REPOSCLONED]=false
+set step[PROJECTNPMINSTALL]=false
+
 REM Load previosly completed steps as skip config
 if exist %runfile% (
   echo Loading Runtime State
@@ -120,8 +116,16 @@ if exist %runfile% (
 )
 :: END CONFIG ---------------------------------------------------------
 
+::Shortcut call a subroutine
+if NOT "%2"=="" (
+  echo calling :%2 %3
+  call :%2 %3*
+  GOTO :EOF
+)
+
 CALL :INITFORRUNASADMINISTRATOR
 
+set existcheck=false
 
 if "%step[PREREQS]%"=="true" (
   echo Prerequistes install already completed.
@@ -220,13 +224,13 @@ if "%step[PREREQS]%"=="true" (
       set step[RELAUNCHWITHENV]=true
       echo set step[RELAUNCHWITHENV]=true>>%runfile%
 
-      echo %instanceroot%\setup\install.bat
+      echo %setupFolder%\install.bat
       pause
       REM call "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
 
       start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
-      REM start /w "%windir%\explorer.exe" "%instanceroot%\setup\install.bat"
-      REM start /i /wait cmd /k %instanceroot%\setup\install.bat
+      REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
+      REM start /i /wait cmd /k %setupFolder%\install.bat
     REM )
   )
 
@@ -255,56 +259,72 @@ GOTO :EOF
       echo fastinstall : %fastinstall%
     ) else (
       REM Net Use \\%localREPO% /user:%localREPOUser% %localREPOPwd%
+
+      if "step[REPOSCLONED]"=="false" (
+        (for %%a in (
+          ember-masonry-grid
+          bbhverse
+          loopback
+          qms
+          ember-searchable-select
+          loopback-component-jsonapi
+          config
+          loopback-connector-ds
+        ) do ( 
+          CALL :GITCLONE %localREPO%/repos %instanceRoot% %%a
+        ))
+        echo set step[REPOSCLONED]=true>>%runfile%
+      ) else (
+
+        echo Repositories Already CLoned.
+
+        REM PB : TODO - pull repositories.
+      )
       
-      Clone repo list.
-      (for %%a in (
-        ember-masonry-grid
-        bbhverse
-        loopback
-        qms
-        ember-searchable-select
-        loopback-component-jsonapi
-        config
-        loopback-connector-ds
-        setup
-      ) do ( 
-        CALL :GITCLONE %localREPO%/repos %instanceRoot% %%a
-      ))
 
       REM echo Upgrading NPM
       REM call npm i npm@latest -g
       
       echo Installing Ember cli
+      set existcheck=false
+      echo existcheck=%existcheck%
       call :CHECKRUNNABLE ember
-      if "%output%"=="true" (
+      echo existcheck=%existcheck%
+      pause
+      if "%existcheck%"=="true" (
           echo   Already Installed %2
         ) else (
-          call npm install -g ember-cli
+          echo Installing ember
+          start /w cmd /c npm install -g ember-cli
         ) 
 
       cd %instanceRoot%\qms
       git checkout genericMRWip --force
       REM npm rebuild node-sass
       
-      REM NPM INSTALL
-      (for %%a in (
-        loopback
-        qms
-        qms/server
-      ) do ( 
-        del %instanceRoot%\%%a\package-lock.json
-        echo npm install FOR %%a
-        cd %instanceRoot%\%%a
-        echo %pwd%
-        call npm install   
-      ))
+      if "step[PROJECTNPMINSTALL]"=="false" (
+        :: NPM INSTALL
+        for %%a in (
+          loopback
+          qms
+          qms/server
+        ) do ( 
+          del %instanceRoot%\%%a\package-lock.json
+          echo npm install FOR %%a
+          cd %instanceRoot%\%%a
+          echo %pwd%
+          call npm install   
+        )
+        echo set step[PROJECTNPMINSTALL]=true>>%runfile%
+      ) else (
+        echo npm install already completed.
+      )
 
       REM BOWER INSTALL
       (for %%a in (
         qms
       ) do ( 
         cd %instanceRoot%\%%a
-        echo %pwd%
         echo Calling Bower install FOR %%a
         call "./node_modules/.bin/bower" install
       ))
@@ -312,21 +332,11 @@ GOTO :EOF
       echo " copying roboto"
       mkdir %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
       xcopy %localREPO%\repos\roboto %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
-
     )
 
-    MKDIR %instanceRoot%\qms\data\filestore
+    
 
-    REM load schema.
-    %xamppinstllpath%\mysql\bin\mysql -uroot -p mysql -e "CREATE DATABASE elixir;" 
-    REM MKDIR %instanceRoot%\loopback\common\schemaBuilderSource
-    REM echo mkdir
-    start /WAIT robocopy %instanceRoot%\loopback\common\models %instanceRoot%\loopback\common\schemaBuilderSource  /COPYALL /E
-
-    cd %instanceRoot%\loopback
-    cd
-    set NODE_ENV=devmysql
-    REM start /wait node sage-rw\bin\schemabuilder.js
+    call :INITDBANDSCHEMA
 
     REM cd ..
     REM ember s
@@ -342,6 +352,31 @@ GOTO :EOF
 
 exit /b
 
+:INITDBANDSCHEMA
+    MKDIR %instanceRoot%\qms\data\filestore
+    echo Initializing DB and schema
+    MKDIR %instanceRoot%\loopback\common\schemaBuilderSource
+    REM start /WAIT  cmd /k 
+    echo call %xamppinstllpath%\mysql\bin\mysql -uroot -p -e "CREATE DATABASE elixir;">%instanceRoot%\tmp\mysql.bat
+    
+    REM echo mkdir
+    REM start /WAIT cmd /k 
+    echo robocopy /E %instanceRoot%\loopback\common\models %instanceRoot%\loopback\common\schemaBuilderSource>>%instanceRoot%\tmp\mysql.bat
+
+    echo cd %instanceRoot%\loopback>>%instanceRoot%\tmp\mysql.bat
+    REM set NODE_ENV=devmysql
+    REM start /wait cmd /k 
+
+    REM PB : TODO -- loopback filestore connector doesn't honor relative path !? always looks for loopback root project folder !?
+    REM TEMP HACK to get the schema created.
+    echo mkdir %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+    echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>%instanceRoot%\tmp\mysql.bat
+
+    start /wait cmd /k %instanceRoot%\tmp\mysql.bat
+    REM PB : TODO -- Remove TEMP HACK to get the schema created.
+    echo del %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+
+exit /b
 
 
 :RUNASADMINISTRATOR ...
@@ -390,16 +425,18 @@ exit /b
 
 REM Check if app is installed
 :CHECKRUNNABLE <app>
-  set output=false
-  for /f "delims=" %%i in ('where %1') do set output=%%i
-  echo Is Runnable for %1 : %output%
-  if exist "%output%" (
-    echo %1 [exists] %output%
-    set output=true
+  set existcheck=false
+  for /f "delims=" %%i in ('where %1') do set existcheck=%%i
+  echo Is Runnable for %1 : %existcheck%
+  pause
+  if exist "%existcheck%" (
+    echo %1 [exists] %existcheck%
+    echo %1=%existcheck%
+    REM set existcheck=true
     REM node %~dp0app.js
   ) else (
-    set output=false
-    echo %1
+    set existcheck=false
+    echo %1=%existcheck%
     call :ERROR "%%1 doesn't exist"     
   )    
 exit /b
@@ -462,7 +499,7 @@ exit /b
 :CHECKANDINSTALLJAVA <version> <name> <url> <DownloadedFile> <installer>
   echo Detecting %2
   call :CHECKRUNNABLE %2
-  if "%output%"=="true" (
+  if "%existcheck%"=="true" (
     echo %2 already installed
   ) else ( echo   Installing %2
     if exist "%4" (
@@ -483,7 +520,7 @@ exit /b
     unzip %1 -d %javainstllpath%
     echo %path%
     call :CHECKRUNNABLE %2
-    if "%output%"=="true" (
+    if "%existcheck%"=="true" (
       echo java path Successfuly set
     ) else (
       echo FAILED : java path not set
@@ -493,7 +530,7 @@ exit /b
 
 :checkIsGitBash 
   call :CHECKRUNNABLE ls
-  if "%output%"=="true" (
+  if "%existcheck%"=="true" (
 
     set isGitBash=true
     echo Running in Git Bash
@@ -506,7 +543,7 @@ exit /b
 :CHECKANDINSTALL <name> <url> <DownloadedFile> <installer>
 REM echo Detecting %1
   call :CHECKRUNNABLE %1 
-  if "%output%"=="true" (
+  if "%existcheck%"=="true" (
     echo     %1 already installed
   ) else (
     echo   Installing %1
@@ -534,7 +571,7 @@ exit /b
   echo   Installing %2
   START /WAIT %1 /VERYSILENT /MERGETASKS=!runcode
   call :CHECKRUNNABLE %2
-  if "%output%"=="true" (
+  if "%existcheck%"=="true" (
     echo   Installed %2
   ) else (
     CALL :FATAL "  INSTALL FAILED %1"
@@ -546,7 +583,7 @@ exit /b
     echo   Installing %2
     MSIEXEC.exe /i %1 ACCEPT=YES /passive
     call :CHECKRUNNABLE %2
-    if "%output%"=="true" (
+    if "%existcheck%"=="true" (
       echo   Installed %2
     ) else (
       CALL :ERROR "  INSTALL FAILED %1"
