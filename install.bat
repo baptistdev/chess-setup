@@ -320,13 +320,11 @@ if "%step[PREREQS]%"=="true" (
         :: Preset paths that dont get set automatically. And are not available until relaunch.
         echo setx path "%%path%%;C:\python27;%javapath%">%instanceroot%/tmp/setenv.bat
         echo pause>>%instanceroot%/tmp/setenv.bat
-        start /w cmd /c %instanceroot%/tmp/setenv.bat
+        start /w cmd /b /c %instanceroot%/tmp/setenv.bat
         set step[RELAUNCHWITHENV]=true
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
 
-        echo %setupFolder%\install.bat
-        pause
-        start /w "C:\Program Files\Git\git-bash" -c "/c/elixir/setup/install.bat"
+        call "C:\Program Files\Git\git-bash" -c "/c/elixir/setup/install.bat"
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
         REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
@@ -372,7 +370,7 @@ exit /b
     ) else (
       REM Net Use \\%localREPO% /user:%localREPOUser% %localREPOPwd%
 
-      if "step[REPOSCLONED]"=="false" (
+      if "!step[REPOSCLONED]!"=="false" (
         (for %%a in (
           ember-masonry-grid
           bbhverse
@@ -407,14 +405,14 @@ exit /b
           echo   Already Installed %2
         ) else (
           echo Installing ember
-          start /w cmd /c npm install -g ember-cli
+          start /w cmd /b /c npm install -g ember-cli
         ) 
 
       cd %instanceRoot%\qms
       git checkout genericMRWip --force
       REM npm rebuild node-sass
       
-      if "step[PROJECTNPMINSTALL]"=="false" (
+      if "!step[PROJECTNPMINSTALL]!"=="false" (
         :: NPM INSTALL
         for %%a in (
           loopback
@@ -484,7 +482,7 @@ exit /b
     echo mkdir %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
     echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>%instanceRoot%\tmp\mysql.bat
 
-    start /wait cmd /k %instanceRoot%\tmp\mysql.bat
+    start /wait cmd /b /k %instanceRoot%\tmp\mysql.bat
     REM PB : TODO -- Remove TEMP HACK to get the schema created.
     echo del %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
 
@@ -516,7 +514,7 @@ exit /b
   echo :UACPrompt>>%instanceRoot%\tmp\runasadmin.bat
   echo     echo Set UAC = CreateObject^^("Shell.Application"^^) ^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
   echo     set params ^= %%^*^:^"^=^"^">>%instanceRoot%\tmp\runasadmin.bat
-  echo     echo UAC.ShellExecute "cmd.exe", "/c %%~s0 %%params%%", "%root%", "runas", 1 ^>^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
+  echo     echo UAC.ShellExecute "cmd.exe", "/b /c %%~s0 %%params%%", "%root%", "runas", 1 ^>^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
   echo     "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
   echo     del "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
   echo     exit /B>>%instanceRoot%\tmp\runasadmin.bat
@@ -534,7 +532,7 @@ exit /b
 exit /b
 
 :EXECQUEUEDFORRUNASADMINISTRATOR
-  START /W cmd.exe /c %instanceRoot%\tmp\runasadmin.bat
+  START /W cmd.exe /b /c %instanceRoot%\tmp\runasadmin.bat
 exit /b
 
 REM Check if app is installed
