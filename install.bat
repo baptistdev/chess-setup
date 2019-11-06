@@ -1,4 +1,7 @@
 @echo off 
+
+
+
 setlocal EnableDelayedExpansion
 
 color 0B 
@@ -12,9 +15,19 @@ set isGitBash=false
 call :checkIsGitBash
 echo Gitbash=%isGitBash%
 
+set relaunchPath=%PATH%
+
+
+
+
+
 set fastinstall=false
 set mypath=%cd%
 set root=%mypath%
+
+
+echo root=%root%
+
 if ""=="%1" ( set instancename=elixir_01
   ) else ( set instancename=%1
   )
@@ -23,6 +36,21 @@ mkdir %instanceRoot%
 mkdir %instanceRoot%\tmp
 echo instanceRoot = %instanceRoot%
 echo root = %root%
+
+
+echo %relaunchPath%
+echo -------------- existing ----------------------
+pause
+type %instanceRoot%\tmp\collectpath.bat
+pause
+call %instanceRoot%\tmp\collectpath.bat
+echo %relaunchPath%
+echo -------------- altered ----------------------
+pause
+set PATH=%relaunchPath%
+path
+pause
+
 
 if exist %instanceRoot%\config.bat (
   echo Loading configuration
@@ -108,6 +136,7 @@ set step[RELAUNCHWITHENV]=false
 set step[PREREQS]=false
 set step[REPOSCLONED]=false
 set step[PROJECTNPMINSTALL]=false
+set step[UACSTEPS]=false
 
 REM Load previosly completed steps as skip config
 if exist %runfile% (
@@ -125,8 +154,6 @@ if NOT "%2"=="" (
   GOTO :EOF
 )
 
-CALL :INITFORRUNASADMINISTRATOR
-
 set existcheck=false
 
 if "%step[PREREQS]%"=="true" (
@@ -136,7 +163,7 @@ if "%step[PREREQS]%"=="true" (
   call :BASHSTEPS 
 
 ) else ( 
-  echo set step[STARTED]=true>%instanceRoot%\tmp\run.log.bat
+  echo set step[STARTED]=true>>%instanceRoot%\tmp\run.log.bat
 
   REM set xamppinstllpath=%root%\runtime\xampp
   if exist "%xamppinstllpath%" (
@@ -161,85 +188,169 @@ if "%step[PREREQS]%"=="true" (
   REM    call :CHECKANDINSTALL  %%a 
   REM ))
 
-  call :CHECKANDINSTALL git https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/Git-2.23.0-64-bit.exe %mypath%\Downloads\Git-2.23.0-64-bit.exe
-  REM exit(1)
-  call git config --global user.name --replace-all "%gitUser%"
-  call git config --global user.email --replace-all "%gitUser%"
-
-  call :CHECKANDINSTALL node https://nodejs.org/dist/v10.16.0/node-v10.16.0-x64.msi %mypath%\Downloads\node-v10.16.0-x64.msi RUNMSIINSTALLER  
-  REM PB : TODO -- Once we have git and node in place relaunch batch file to clone the setup from repo and
-  REM  -- hand over he installation there... and skip the rest here...
-
-
-  call :CHECKANDINSTALL code https://vscode-update.azurewebsites.net/latest/win32-x64/stable %mypath%\Downloads\vscode-win32-x64-latest-stable.exe
-  REM call :CHECKANDINSTALL .net https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/NDP461-KB3102436-x86-x64-AllOS-ENU.exe %mypath%\Downloads\NDP461-KB3102436-x86-x64-AllOS-ENU.exe
-  REM call :CHECKANDINSTALL python https://www.python.org/ftp/python/3.6.5/python-3.6.5-amd64.exe %mypath%\Downloads\python-3.6.5-amd64.exe
-  echo step[PREREQS] = %step[PREREQS]%
-  pause
-  if "%step[RELAUNCHWITHENV]%"=="true" (
-    echo path=%path%
-    pause
-    call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
-  
-    REM PB : TODO -- Esure npm is available with path already set.
-    call :RUNSTEP INSTALLWINBUILDTOOLS
-    
-    echo xamppinstllpath %xamppinstllpath%
-    call :CHECKANDINSTALLXAMPP %xamppinstllpath%\xampp-control.exe xampp https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER
-    
-    call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
-    
+  if "%step[UACSTEPS]%"=="false" (
+    CALL :INITFORRUNASADMINISTRATOR
+    CALL :QUEUEFORRUNASADMINISTRATOR cd %root%
+    set step[UACSTEPS]=start
+    echo set step[UACSTEPS]=start>>%instanceRoot%\tmp\run.log.bat
+    CALL :QUEUEFORRUNASADMINISTRATOR cmd /b /c %root%\setup\install.bat
     call :EXECQUEUEDFORRUNASADMINISTRATOR
-    REM PB : TODO SHELLEXECUTE DOESNT WAIT...
+
+    echo UAC Steps completed.
     pause
 
-    echo PREREQS Install completed
+    CALL :INITFORRUNASADMINISTRATOR
+    echo echo set relaunchPath=%%path%%^>%instanceRoot%\tmp\collectpath.bat>>%instanceRoot%\tmp\runasadmin.bat
+    echo echo pause>%instanceRoot%\tmp\collectpath.bat>>%instanceRoot%\tmp\runasadmin.bat
+    REM CALL :QUEUEFORRUNASADMINISTRATOR set path=%%path%%^>%%instanceRoot%%\tmp\collectpath.bat
+    CALL :QUEUEFORRUNASADMINISTRATOR path
+    CALL :QUEUEFORRUNASADMINISTRATOR pause
+    call :EXECQUEUEDFORRUNASADMINISTRATOR
 
-    set step[PREREQS]=true
-    echo set step[PREREQS]=true>%instanceRoot%\tmp\run.log.bat
-    
-    echo checking gitbashrun
-    if exist "%instanceRoot%\tmp\gitbashrun.log.bat" (
-      echo git-bash process already launched
-    ) else (
-      pause
-      if "true"=="%isGitBash%" (
-        call :BASHSTEPS
-      ) else ( REM Switch to a git bash shell to continue
-        cd %root%
-        echo started>%instanceRoot%\tmp\gitbashrun.log.bat
-        echo "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
-        call "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
-        del %instanceRoot%\tmp\gitbashrun.log.bat
-      )
-    )
-  ) else ( 
+    echo Post UAC PATH collected.
+    pause
 
-    REM if "%step[RELAUNCHWITHENV]%"=="true" (
-    REM   echo Already relaunched.
-    REM ) else (
-      :: Preset paths that dont get set automatically. And are not available until relaunch.
-      echo setx path "%%path%%;C:\python27;%javapath%">%instanceroot%/tmp/setenv.bat
-      echo pause>>%instanceroot%/tmp/setenv.bat
-      start /w cmd /c %instanceroot%/tmp/setenv.bat
-      set step[RELAUNCHWITHENV]=true
-      echo set step[RELAUNCHWITHENV]=true>>%runfile%
 
-      echo %setupFolder%\install.bat
-      pause
-      REM call "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
 
-      start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
-      REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
-      REM start /i /wait cmd /k %setupFolder%\install.bat
-    REM )
+    pause
+    REM exit /b
+
+    REM echo %relaunchPath%
+    REM echo -------------- existing ----------------------
+    REM pause
+    REM type %instanceRoot%\tmp\collectpath.bat
+    REM pause
+    REM call %instanceRoot%\tmp\collectpath.bat
+    REM echo %relaunchPath%
+    REM echo -------------- altered ----------------------
+    REM pause
+    REM REM set PATH=%PATH%;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\Git\cmd;C:\Users\baptistmis\bin;C:\Users\baptistmis\AppData\Roaming\npm;
+    REM path
+    REM pause
+
   )
+
+  echo %step[UACSTEPS]%
+  pause  
+  if "%step[UACSTEPS]%"=="start" (
+    :: We r now in a new UAC SHELL where we can do UAC steps.
+    call :CHECKANDINSTALL git https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/Git-2.23.0-64-bit.exe %mypath%\Downloads\Git-2.23.0-64-bit.exe
+    
+    call :CHECKANDINSTALL node https://nodejs.org/dist/v10.16.0/node-v10.16.0-x64.msi %mypath%\Downloads\node-v10.16.0-x64.msi RUNMSIINSTALLER  
+    REM PB : TODO -- Once we have git and node in place relaunch batch file to clone the setup from repo and
+    REM  -- hand over he installation there... and skip the rest here...
+
+    call :CHECKANDINSTALL code https://vscode-update.azurewebsites.net/latest/win32-x64/stable %mypath%\Downloads\vscode-win32-x64-latest-stable.exe
+    REM call :CHECKANDINSTALL .net https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/NDP461-KB3102436-x86-x64-AllOS-ENU.exe %mypath%\Downloads\NDP461-KB3102436-x86-x64-AllOS-ENU.exe
+    REM call :CHECKANDINSTALL python https://www.python.org/ftp/python/3.6.5/python-3.6.5-amd64.exe %mypath%\Downloads\python-3.6.5-amd64.exe
+
+    REM :SETUACSTEPS true
+    set step[UACSTEPS]=true
+    echo set step[UACSTEPS]=true>>%instanceRoot%\tmp\run.log.bat
+
+    
+    echo step[UACSTEPS] : %step[UACSTEPS]%
+    echo step[RELAUNCHWITHENV] : %step[RELAUNCHWITHENV]%
+    pause
+
+    :: Shell will exit and resume in original shell from where it was called.
+    exit /b
+  )
+
+  :: Need to reread on return
+  CALL %runfile%
+  echo step[UACSTEPS] : !step[UACSTEPS]!
+  echo step[RELAUNCHWITHENV] : !step[RELAUNCHWITHENV]!
+  echo -----------------------------
+  pause
+
+  if "!step[UACSTEPS]!"=="true" (
+
+    call git config --global user.name --replace-all "%gitUser%"
+    pause
+    call git config --global user.email --replace-all "%gitUser%"
+    pause
+           
+    echo step[PREREQS]=%step[PREREQS]%
+    pause
+    if "!step[RELAUNCHWITHENV]!"=="true" (
+      path
+      pause
+      call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
+    
+      REM PB : TODO -- Esure npm is available with path already set.
+      
+      CALL :INITFORRUNASADMINISTRATOR
+      call :RUNSTEP INSTALLWINBUILDTOOLS
+      echo xamppinstllpath %xamppinstllpath%
+      call :CHECKANDINSTALLXAMPP %xamppinstllpath%\xampp-control.exe xampp https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER
+      call :EXECQUEUEDFORRUNASADMINISTRATOR
+
+      call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
+      
+      
+      REM PB : TODO SHELLEXECUTE DOESNT WAIT...
+      pause
+
+      echo PREREQS Install completed
+
+      set step[PREREQS]=true
+      echo set step[PREREQS]=true>>%instanceRoot%\tmp\run.log.bat
+      
+      echo checking gitbashrun
+      if exist "%instanceRoot%\tmp\gitbashrun.log.bat" (
+        echo git-bash process already launched
+      ) else (
+        pause
+        if "true"=="%isGitBash%" (
+          call :BASHSTEPS
+        ) else ( REM Switch to a git bash shell to continue
+          cd %root%
+          echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
+          echo "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
+          call "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
+          del %instanceRoot%\tmp\gitbashrun.log.bat
+        )
+      )
+    ) else ( 
+
+      REM if "%step[RELAUNCHWITHENV]%"=="true" (
+      REM   echo Already relaunched.
+      REM ) else (
+        :: Preset paths that dont get set automatically. And are not available until relaunch.
+        echo setx path "%%path%%;C:\python27;%javapath%">%instanceroot%/tmp/setenv.bat
+        echo pause>>%instanceroot%/tmp/setenv.bat
+        start /w cmd /c %instanceroot%/tmp/setenv.bat
+        set step[RELAUNCHWITHENV]=true
+        echo set step[RELAUNCHWITHENV]=true>>%runfile%
+
+        echo %setupFolder%\install.bat
+        pause
+        start /w "C:\Program Files\Git\git-bash" -c "/c/elixir/setup/install.bat"
+
+        REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
+        REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
+        REM start /i /wait cmd /k %setupFolder%\install.bat
+      REM )
+    )
+
+
+
+
+    
+  )
+
+  
 
   
 )
 
 GOTO :EOF
 
+
+:UACSTEPS
+
+exit /b
 
 :BASHSTEPS
     echo -----------------------------------------------------  
@@ -388,7 +499,7 @@ exit /b
 
 exit /b
 
-:INITFORRUNASADMINISTRATOR
+:INITFORRUNASADMINISTRATOR 
   @echo off
 
   echo @echo off>%instanceRoot%\tmp\runasadmin.bat
@@ -405,7 +516,7 @@ exit /b
   echo :UACPrompt>>%instanceRoot%\tmp\runasadmin.bat
   echo     echo Set UAC = CreateObject^^("Shell.Application"^^) ^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
   echo     set params ^= %%^*^:^"^=^"^">>%instanceRoot%\tmp\runasadmin.bat
-  echo     echo UAC.ShellExecute "cmd.exe", "/c %%~s0 %%params%%", "", "runas", 1 ^>^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
+  echo     echo UAC.ShellExecute "cmd.exe", "/c %%~s0 %%params%%", "%root%", "runas", 1 ^>^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
   echo     "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
   echo     del "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
   echo     exit /B>>%instanceRoot%\tmp\runasadmin.bat
@@ -417,6 +528,8 @@ exit /b
 exit /b
 
 :QUEUEFORRUNASADMINISTRATOR ...
+  echo %*
+  pause
   echo %*>>%instanceRoot%\tmp\runasadmin.bat
 exit /b
 
@@ -432,8 +545,8 @@ REM Check if app is installed
   pause
   if exist "%existcheck%" (
     echo %1 [exists] %existcheck%
-    echo %1=%existcheck%
-    REM set existcheck=true
+    echo %1 : %existcheck%
+    set existcheck=true
     REM node %~dp0app.js
   ) else (
     set existcheck=false
@@ -470,6 +583,16 @@ exit /b
   ) else (
     CALL :%1
   )
+exit /b
+
+:SETUACSTEPS <val>
+  set step[UACSTEPS]=%1
+  echo set step[UACSTEPS]=%1>>%instanceRoot%\tmp\run.log.bat
+exit /b
+
+:SETSTEPVAR <VAR>
+  set step[%1]=true
+  echo set step[%1]=true>>%instanceRoot%\tmp\run.log.bat
 exit /b
 
 :INSTALLWINBUILDTOOLS
