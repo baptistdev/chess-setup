@@ -188,7 +188,7 @@ if "%step[PREREQS]%"=="true" (
   REM    call :CHECKANDINSTALL  %%a 
   REM ))
 
-  if "%step[UACSTEPS]%"=="false" (
+if "%step[UACSTEPS]%"=="false" (
     CALL :INITFORRUNASADMINISTRATOR
     CALL :QUEUEFORRUNASADMINISTRATOR cd %root%
     set step[UACSTEPS]=start
@@ -231,7 +231,7 @@ if "%step[PREREQS]%"=="true" (
   )
 
   echo %step[UACSTEPS]%
-  pause  
+  pause
   if "%step[UACSTEPS]%"=="start" (
     :: We r now in a new UAC SHELL where we can do UAC steps.
     call :CHECKANDINSTALL git https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/Git-2.23.0-64-bit.exe %mypath%\Downloads\Git-2.23.0-64-bit.exe
@@ -270,25 +270,26 @@ if "%step[PREREQS]%"=="true" (
     pause
     call git config --global user.email --replace-all "%gitUser%"
     pause
-           
+
     echo step[PREREQS]=%step[PREREQS]%
-    pause
+  pause
     if "!step[RELAUNCHWITHENV]!"=="true" (
       path
       pause
       call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
-    
-      REM PB : TODO -- Esure npm is available with path already set.
       
+      REM PB : TODO -- Esure npm is available with path already set.
+
       CALL :INITFORRUNASADMINISTRATOR
       call :RUNSTEP INSTALLWINBUILDTOOLS
       echo xamppinstllpath %xamppinstllpath%
       call :CHECKANDINSTALLXAMPP %xamppinstllpath%\xampp-control.exe xampp https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER
       call :EXECQUEUEDFORRUNASADMINISTRATOR
-
+      
       call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
       
-      
+
+      call :EXECQUEUEDFORRUNASADMINISTRATOR
       REM PB : TODO SHELLEXECUTE DOESNT WAIT...
       pause
 
@@ -313,7 +314,25 @@ if "%step[PREREQS]%"=="true" (
         )
       )
     ) else ( 
+      call :CHECKRUNNABLE python 
+      if "%existcheck%"=="false" (
+            setx path "C:\python27;!path!"
+            set path="C:\python27;!path!"
+            echo !path!
+            echo =========inside python
+      )
 
+      call :CHECKRUNNABLE java
+      if "%existcheck%"=="false" (
+            setx path "!javapath!;!path!"
+            set path="!javapath!;!path!"
+            echo !path!
+            echo =========inside java
+      )
+
+    echo !path!
+    echo =============
+    pause
       REM if "%step[RELAUNCHWITHENV]%"=="true" (
       REM   echo Already relaunched.
       REM ) else (
@@ -333,15 +352,15 @@ if "%step[PREREQS]%"=="true" (
     )
 
 
-
-
-    
   )
 
-  
 
-  
+
 )
+
+
+
+
 
 GOTO :EOF
 
@@ -390,7 +409,7 @@ exit /b
 
         REM PB : TODO - pull repositories.
       )
-      
+
 
       REM echo Upgrading NPM
       REM call npm i npm@latest -g
@@ -435,6 +454,7 @@ exit /b
         qms
       ) do ( 
         cd %instanceRoot%\%%a
+        echo %pwd%
         echo Calling Bower install FOR %%a
         call "./node_modules/.bin/bower" install
       ))
@@ -444,7 +464,7 @@ exit /b
       xcopy %localREPO%\repos\roboto %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
     )
 
-    
+
 
     call :INITDBANDSCHEMA
 
@@ -497,7 +517,7 @@ exit /b
 
 exit /b
 
-:INITFORRUNASADMINISTRATOR 
+:INITFORRUNASADMINISTRATOR
   @echo off
 
   echo @echo off>%instanceRoot%\tmp\runasadmin.bat
@@ -526,9 +546,9 @@ exit /b
 exit /b
 
 :QUEUEFORRUNASADMINISTRATOR ...
-  echo %*
-  pause
-  echo %*>>%instanceRoot%\tmp\runasadmin.bat
+echo %*
+pause
+ echo %*>>%instanceRoot%\tmp\runasadmin.bat
 exit /b
 
 :EXECQUEUEDFORRUNASADMINISTRATOR
