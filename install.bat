@@ -410,9 +410,8 @@ exit /b
         REM PB : TODO - pull repositories.
       )
 
-
-      REM echo Upgrading NPM
-      REM call npm i npm@latest -g
+      echo Upgrading NPM
+      call npm i npm@latest -g
       
       echo Installing Ember cli
       set existcheck=false
