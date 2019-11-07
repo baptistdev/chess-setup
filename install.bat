@@ -5,6 +5,7 @@
 setlocal EnableDelayedExpansion
 
 color 0B 
+REM chcp 65001
 REM color 0B & Mode 80,40
 
 echo -----------------------------------
@@ -16,10 +17,6 @@ call :checkIsGitBash
 echo Gitbash=%isGitBash%
 
 set relaunchPath=%PATH%
-
-
-
-
 
 set fastinstall=false
 set mypath=%cd%
@@ -137,6 +134,8 @@ set step[PREREQS]=false
 set step[REPOSCLONED]=false
 set step[PROJECTNPMINSTALL]=false
 set step[UACSTEPS]=false
+set step[NPMUPGRADE]=false
+set step[DBSCHEMA]=false
 
 REM Load previosly completed steps as skip config
 if exist %runfile% (
@@ -267,12 +266,11 @@ if "%step[UACSTEPS]%"=="false" (
   if "!step[UACSTEPS]!"=="true" (
 
     call git config --global user.name --replace-all "%gitUser%"
-    pause
     call git config --global user.email --replace-all "%gitUser%"
-    pause
+
 
     echo step[PREREQS]=%step[PREREQS]%
-  pause
+    pause
     if "!step[RELAUNCHWITHENV]!"=="true" (
       path
       pause
@@ -287,9 +285,7 @@ if "%step[UACSTEPS]%"=="false" (
       call :EXECQUEUEDFORRUNASADMINISTRATOR
       
       call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
-      
 
-      call :EXECQUEUEDFORRUNASADMINISTRATOR
       REM PB : TODO SHELLEXECUTE DOESNT WAIT...
       pause
 
@@ -315,7 +311,7 @@ if "%step[UACSTEPS]%"=="false" (
       )
     ) else ( 
       call :CHECKRUNNABLE python 
-      if "%existcheck%"=="false" (
+      if "!existcheck!"=="false" (
             setx path "C:\python27;!path!"
             set path="C:\python27;!path!"
             echo !path!
@@ -323,16 +319,16 @@ if "%step[UACSTEPS]%"=="false" (
       )
 
       call :CHECKRUNNABLE java
-      if "%existcheck%"=="false" (
+      if "!existcheck!"=="false" (
             setx path "!javapath!;!path!"
             set path="!javapath!;!path!"
             echo !path!
             echo =========inside java
       )
 
-    echo !path!
-    echo =============
-    pause
+      echo !path!
+      echo =============
+      pause
       REM if "%step[RELAUNCHWITHENV]%"=="true" (
       REM   echo Already relaunched.
       REM ) else (
@@ -350,12 +346,7 @@ if "%step[UACSTEPS]%"=="false" (
         REM start /i /wait cmd /k %setupFolder%\install.bat
       REM )
     )
-
-
   )
-
-
-
 )
 
 
@@ -410,16 +401,22 @@ exit /b
         REM PB : TODO - pull repositories.
       )
 
-      echo Upgrading NPM
-      call npm i npm@latest -g
+      if "!step[NPMUPGRADE]!"=="false" (
+        echo Upgrading NPM
+        call npm i npm@latest -g
+        set step[NPMUPGRADE]=true
+        echo set step[NPMUPGRADE]=true>>%runfile%
+      ) else (
+        echo NPM Already Upgraded
+      )
       
       echo Installing Ember cli
       set existcheck=false
-      echo existcheck=%existcheck%
+      echo existcheck=!existcheck!
       call :CHECKRUNNABLE ember
-      echo existcheck=%existcheck%
+      echo existcheck=!existcheck!
       pause
-      if "%existcheck%"=="true" (
+      if "!existcheck!"=="true" (
           echo   Already Installed %2
         ) else (
           echo Installing ember
@@ -482,6 +479,7 @@ exit /b
 exit /b
 
 :INITDBANDSCHEMA
+  if "!step[DBSCHEMA]!"=="false" (
     MKDIR %instanceRoot%\qms\data\filestore
     echo Initializing DB and schema
     MKDIR %instanceRoot%\loopback\common\schemaBuilderSource
@@ -501,10 +499,16 @@ exit /b
     echo mkdir %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
     echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>%instanceRoot%\tmp\mysql.bat
 
-    start /wait cmd /b /k %instanceRoot%\tmp\mysql.bat
+    start /wait cmd /b /c %instanceRoot%\tmp\mysql.bat
     REM PB : TODO -- Remove TEMP HACK to get the schema created.
     echo del %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
 
+    set step[DBSCHEMA]=true
+    echo set step[DBSCHEMA]=%1>>%instanceRoot%\tmp\run.log.bat
+    
+  ) else (
+
+  )
 exit /b
 
 
@@ -558,16 +562,16 @@ REM Check if app is installed
 :CHECKRUNNABLE <app>
   set existcheck=false
   for /f "delims=" %%i in ('where %1') do set existcheck=%%i
-  echo Is Runnable for %1 : %existcheck%
+  echo Is Runnable for %1 : !existcheck!
   pause
-  if exist "%existcheck%" (
-    echo %1 [exists] %existcheck%
-    echo %1 : %existcheck%
+  if exist "!existcheck!" (
+    CALL :GREEN √ %1 [exists] !existcheck!
+    echo %1 : !existcheck!
     set existcheck=true
     REM node %~dp0app.js
   ) else (
     set existcheck=false
-    echo %1=%existcheck%
+    echo %1=!existcheck!
     call :ERROR "%%1 doesn't exist"     
   )    
 exit /b
@@ -640,7 +644,7 @@ exit /b
 :CHECKANDINSTALLJAVA <version> <name> <url> <DownloadedFile> <installer>
   echo Detecting %2
   call :CHECKRUNNABLE %2
-  if "%existcheck%"=="true" (
+  if "!existcheck!"=="true" (
     echo %2 already installed
   ) else ( echo   Installing %2
     if exist "%4" (
@@ -661,7 +665,7 @@ exit /b
     unzip %1 -d %javainstllpath%
     echo %path%
     call :CHECKRUNNABLE %2
-    if "%existcheck%"=="true" (
+    if "!existcheck!"=="true" (
       echo java path Successfuly set
     ) else (
       echo FAILED : java path not set
@@ -671,7 +675,7 @@ exit /b
 
 :checkIsGitBash 
   call :CHECKRUNNABLE ls
-  if "%existcheck%"=="true" (
+  if "!existcheck!"=="true" (
 
     set isGitBash=true
     echo Running in Git Bash
@@ -684,7 +688,7 @@ exit /b
 :CHECKANDINSTALL <name> <url> <DownloadedFile> <installer>
 REM echo Detecting %1
   call :CHECKRUNNABLE %1 
-  if "%existcheck%"=="true" (
+  if "!existcheck!"=="true" (
     echo     %1 already installed
   ) else (
     echo   Installing %1
@@ -712,7 +716,7 @@ exit /b
   echo   Installing %2
   START /WAIT %1 /VERYSILENT /MERGETASKS=!runcode
   call :CHECKRUNNABLE %2
-  if "%existcheck%"=="true" (
+  if "!existcheck!"=="true" (
     echo   Installed %2
   ) else (
     CALL :FATAL "  INSTALL FAILED %1"
@@ -724,7 +728,7 @@ exit /b
     echo   Installing %2
     MSIEXEC.exe /i %1 ACCEPT=YES /passive
     call :CHECKRUNNABLE %2
-    if "%existcheck%"=="true" (
+    if "!existcheck!"=="true" (
       echo   Installed %2
     ) else (
       CALL :ERROR "  INSTALL FAILED %1"
@@ -793,14 +797,17 @@ if %ERRORLEVEL%==0 (
 )
 exit /b
 
+:GREEN <msg>
+  echo [92m %* [0m
+exit /b
+
 :FATAL <msg>
   echo [101;93m %~1 [0m  
 exit /b
 
 :ERROR <msg>
   echo [107;91m %~1 [0m  
-exit /b
-
+exit /bz
 
 :TITLE <msg>
   echo [104;97m %~1 [0m  
