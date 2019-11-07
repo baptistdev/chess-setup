@@ -105,18 +105,18 @@ if exist %instanceRoot%\config.bat (
   echo     User : %remoteREPOHTTPSUser% 
   echo     Pwd  : %remoteREPOHTTPSPwd% 
 
-  @echo set localREPO=%localREPO%>%instanceRoot%\config.bat
-  @echo     set localREPOUNCUser=%localREPOUNCUser%>>%instanceRoot%\config.bat
+  @echo set localREPO=!localREPO!>%instanceRoot%\config.bat
+  @echo     set localREPOUNCUser=!localREPOUNCUser!>>%instanceRoot%\config.bat
   echo localREPOUNCUser = %instanceRoot%
-  @echo     set localREPOUNCPwd=%localREPOUNCPwd%>>%instanceRoot%\config.bat
-  @echo     set gitUser=%gitUser%>>%instanceRoot%\config.bat
-  @echo     set gitEmail=%gitEmail%>>%instanceRoot%\config.bat
+  @echo     set localREPOUNCPwd=!localREPOUNCPwd!>>%instanceRoot%\config.bat
+  @echo     set gitUser=!gitUser!>>%instanceRoot%\config.bat
+  @echo     set gitEmail=!gitEmail!>>%instanceRoot%\config.bat
 
-  @echo set remoteREPO=%remoteREPO%>>%instanceRoot%\config.bat
-  @echo     set remoteREPOHTTPSUser=%remoteREPOHTTPSUser%>>%instanceRoot%\config.bat
-  @echo     set remoteREPOHTTPSPwd=%remoteREPOHTTPSPwd%>>%instanceRoot%\config.bat
+  @echo set remoteREPO=!remoteREPO!>>%instanceRoot%\config.bat
+  @echo     set remoteREPOHTTPSUser=!remoteREPOHTTPSUser!>>%instanceRoot%\config.bat
+  @echo     set remoteREPOHTTPSPwd=!remoteREPOHTTPSPwd!>>%instanceRoot%\config.bat
 
-  @echo set instancename=%instancename%>>%instanceRoot%\config.bat
+  @echo set instancename=!instancename!>>%instanceRoot%\config.bat
 
 )
 
@@ -288,8 +288,6 @@ if "%step[UACSTEPS]%"=="false" (
       
       call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
       
-
-      call :EXECQUEUEDFORRUNASADMINISTRATOR
       REM PB : TODO SHELLEXECUTE DOESNT WAIT...
       pause
 
