@@ -308,8 +308,8 @@ if "%step[UACSTEPS]%"=="false" (
         ) else ( REM Switch to a git bash shell to continue
           cd %root%
           echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
-          echo "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
-          call "C:\Program Files\Git\git-bash" -c "/c/elixir/instances/elixir_01/setup/install.bat"
+          echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+          call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           del %instanceRoot%\tmp\gitbashrun.log.bat
         )
       )
@@ -342,8 +342,9 @@ if "%step[UACSTEPS]%"=="false" (
         start /w cmd /b /c %instanceroot%/tmp/setenv.bat
         set step[RELAUNCHWITHENV]=true
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
+        cd %root%
 
-        call "C:\Program Files\Git\git-bash" -c "/c/elixir/setup/install.bat"
+        call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
         REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
