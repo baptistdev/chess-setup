@@ -5,6 +5,7 @@
 setlocal EnableDelayedExpansion
 
 color 0B 
+REM chcp 65001
 REM color 0B & Mode 80,40
 
 echo -----------------------------------
@@ -16,10 +17,6 @@ call :checkIsGitBash
 echo Gitbash=%isGitBash%
 
 set relaunchPath=%PATH%
-
-
-
-
 
 set fastinstall=false
 set mypath=%cd%
@@ -40,14 +37,11 @@ echo root = %root%
 
 echo %relaunchPath%
 echo -------------- existing ----------------------
-
-type %instanceRoot%\tmp\collectpath.bat
-
+REM type %instanceRoot%\tmp\collectpath.bat
 call %instanceRoot%\tmp\collectpath.bat
 echo %relaunchPath%
 echo -------------- altered ----------------------
-
-set PATH=%relaunchPath%
+set PATH=%PATH%;%relaunchPath%
 path
 
 
@@ -110,8 +104,7 @@ if exist %instanceRoot%\config.bat (
 
   @echo set localREPO=!localREPO!>%instanceRoot%\config.bat
   @echo     set localREPOUNCUser=!localREPOUNCUser!>>%instanceRoot%\config.bat
-
-  echo localREPOUNCUser = !instanceRoot!
+  echo localREPOUNCUser = %instanceRoot%
   @echo     set localREPOUNCPwd=!localREPOUNCPwd!>>%instanceRoot%\config.bat
   @echo     set gitUser=!gitUser!>>%instanceRoot%\config.bat
   @echo     set gitEmail=!gitEmail!>>%instanceRoot%\config.bat
@@ -120,7 +113,7 @@ if exist %instanceRoot%\config.bat (
   @echo     set remoteREPOHTTPSUser=!remoteREPOHTTPSUser!>>%instanceRoot%\config.bat
   @echo     set remoteREPOHTTPSPwd=!remoteREPOHTTPSPwd!>>%instanceRoot%\config.bat
 
-  @echo set instancename=%instancename%>>%instanceRoot%\config.bat
+  @echo set instancename=!instancename!>>%instanceRoot%\config.bat
 
 )
 
@@ -143,6 +136,8 @@ set step[PREREQS]=false
 set step[REPOSCLONED]=false
 set step[PROJECTNPMINSTALL]=false
 set step[UACSTEPS]=false
+set step[NPMUPGRADE]=false
+set step[DBSCHEMA]=false
 
 REM Load previosly completed steps as skip config
 if exist %runfile% (
@@ -261,6 +256,12 @@ if "%step[UACSTEPS]%"=="false" (
 
   :: Need to reread on return
   CALL %runfile%
+  call %instanceRoot%\tmp\collectpath.bat
+  echo %relaunchPath%
+  echo -------------- altered ----------------------
+  set PATH=%PATH%;%relaunchPath%
+
+
   echo step[UACSTEPS] : !step[UACSTEPS]!
   echo step[RELAUNCHWITHENV] : !step[RELAUNCHWITHENV]!
   echo -----------------------------
@@ -269,12 +270,10 @@ if "%step[UACSTEPS]%"=="false" (
   if "!step[UACSTEPS]!"=="true" (
 
     call git config --global user.name --replace-all "%gitUser%"
-    pause
     call git config --global user.email --replace-all "%gitUser%"
-    pause
+
 
     echo step[PREREQS]=%step[PREREQS]%
-
     if "!step[RELAUNCHWITHENV]!"=="true" (
       path
    
@@ -290,8 +289,6 @@ if "%step[UACSTEPS]%"=="false" (
       
       call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
       
-
-   
       REM PB : TODO SHELLEXECUTE DOESNT WAIT...
       pause
 
@@ -317,7 +314,7 @@ if "%step[UACSTEPS]%"=="false" (
       )
     ) else ( 
       call :CHECKRUNNABLE python 
-      if "%existcheck%"=="false" (
+      if "!existcheck!"=="false" (
             setx path "C:\python27;!path!"
             set path="C:\python27;!path!"
             echo !path!
@@ -325,16 +322,16 @@ if "%step[UACSTEPS]%"=="false" (
       )
 relaunchPath
       call :CHECKRUNNABLE java
-      if "%existcheck%"=="false" (
+      if "!existcheck!"=="false" (
             setx path "!javapath!;!path!"
             set path="!javapath!;!path!"
             echo !path!
             echo =========inside java
       )
 
-    echo !path!
-    echo =============
-    pause
+      echo !path!
+      echo =============
+      pause
       REM if "%step[RELAUNCHWITHENV]%"=="true" (
       REM   echo Already relaunched.
       REM ) else (
@@ -353,12 +350,7 @@ relaunchPath
         REM start /i /wait cmd /k %setupFolder%\install.bat
       REM )
     )
-
-
   )
-
-
-
 )
 
 
@@ -416,18 +408,22 @@ exit /b
         REM PB : TODO - pull repositories.
       )
 
-      echo Upgrading NPM
-      call npm i npm@latest -g
+      if "!step[NPMUPGRADE]!"=="false" (
+        echo Upgrading NPM
+        call npm i npm@latest -g
+        set step[NPMUPGRADE]=true
+        echo set step[NPMUPGRADE]=true>>%runfile%
+      ) else (
+        echo NPM Already Upgraded
+      )
       
       echo Installing Ember cli
       set existcheck=false
-      pause
-      echo existcheck=%existcheck%
-      pause
+      echo existcheck=!existcheck!
       call :CHECKRUNNABLE ember
-      echo existcheck=%existcheck%
+      echo existcheck=!existcheck!
       pause
-      if "%existcheck%"=="true" (
+      if "!existcheck!"=="true" (
           echo   Already Installed %2
         ) else (
           echo Installing ember
@@ -490,6 +486,7 @@ exit /b
 exit /b
 
 :INITDBANDSCHEMA
+  if "!step[DBSCHEMA]!"=="false" (
     MKDIR %instanceRoot%\qms\data\filestore
     echo Initializing DB and schema
     MKDIR %instanceRoot%\loopback\common\schemaBuilderSource
@@ -509,10 +506,16 @@ exit /b
     echo mkdir %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
     echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>%instanceRoot%\tmp\mysql.bat
 
-    start /wait cmd /b /k %instanceRoot%\tmp\mysql.bat
+    start /wait cmd /b /c %instanceRoot%\tmp\mysql.bat
     REM PB : TODO -- Remove TEMP HACK to get the schema created.
     echo del %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
 
+    set step[DBSCHEMA]=true
+    echo set step[DBSCHEMA]=%1>>%instanceRoot%\tmp\run.log.bat
+    
+  ) else (
+
+  )
 exit /b
 
 
@@ -565,17 +568,20 @@ exit /b
 REM Check if app is installed
 :CHECKRUNNABLE <app>
   set existcheck=false
-  for /f "delims=" %%i in ('where %1') do set existcheck=%%i
-  echo Is Runnable for %1 : %existcheck%
-  pause
-  if exist "%existcheck%" (
-    echo %1 [exists] %existcheck%
-    echo %1 : %existcheck%
+  echo Checkrunnable for %1
+  for /f "delims=" %%i in ('where %1') do (
+    set existcheck=%%i
+  )
+  echo Is Runnable for %1 : !existcheck!
+  
+  if exist "!existcheck!" (
+    CALL :GREEN √ %1 [exists] !existcheck!
+    echo %1 : !existcheck!
     set existcheck=true
     REM node %~dp0app.js
   ) else (
     set existcheck=false
-    echo %1=%existcheck%
+    echo %1=!existcheck!
     call :ERROR "%%1 doesn't exist"     
   )    
 exit /b
@@ -648,7 +654,7 @@ exit /b
 :CHECKANDINSTALLJAVA <version> <name> <url> <DownloadedFile> <installer>
   echo Detecting %2
   call :CHECKRUNNABLE %2
-  if "%existcheck%"=="true" (
+  if "!existcheck!"=="true" (
     echo %2 already installed
   ) else ( echo   Installing %2
     if exist "%4" (
@@ -669,7 +675,7 @@ exit /b
     unzip %1 -d %javainstllpath%
     echo %path%
     call :CHECKRUNNABLE %2
-    if "%existcheck%"=="true" (
+    if "!existcheck!"=="true" (
       echo java path Successfuly set
     ) else (
       echo FAILED : java path not set
@@ -679,7 +685,7 @@ exit /b
 
 :checkIsGitBash 
   call :CHECKRUNNABLE ls
-  if "%existcheck%"=="true" (
+  if "!existcheck!"=="true" (
 
     set isGitBash=true
     echo Running in Git Bash
@@ -692,7 +698,7 @@ exit /b
 :CHECKANDINSTALL <name> <url> <DownloadedFile> <installer>
 REM echo Detecting %1
   call :CHECKRUNNABLE %1 
-  if "%existcheck%"=="true" (
+  if "!existcheck!"=="true" (
     echo     %1 already installed
   ) else (
     echo   Installing %1
@@ -720,7 +726,7 @@ exit /b
   echo   Installing %2
   START /WAIT %1 /VERYSILENT /MERGETASKS=!runcode
   call :CHECKRUNNABLE %2
-  if "%existcheck%"=="true" (
+  if "!existcheck!"=="true" (
     echo   Installed %2
   ) else (
     CALL :FATAL "  INSTALL FAILED %1"
@@ -732,7 +738,7 @@ exit /b
     echo   Installing %2
     MSIEXEC.exe /i %1 ACCEPT=YES /passive
     call :CHECKRUNNABLE %2
-    if "%existcheck%"=="true" (
+    if "!existcheck!"=="true" (
       echo   Installed %2
     ) else (
       CALL :ERROR "  INSTALL FAILED %1"
@@ -801,14 +807,17 @@ if %ERRORLEVEL%==0 (
 )
 exit /b
 
+:GREEN <msg>
+  echo [92m %* [0m
+exit /b
+
 :FATAL <msg>
   echo [101;93m %~1 [0m  
 exit /b
 
 :ERROR <msg>
   echo [107;91m %~1 [0m  
-exit /b
-
+exit /bz
 
 :TITLE <msg>
   echo [104;97m %~1 [0m  

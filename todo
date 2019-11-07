@@ -1,0 +1,14 @@
+to do:
+check for buildtools
+
+git checkout for qms not working
+git for user some issue
+setx for insted of this find better method possibly registry method
+
+delayed expansion for all variables
+
+removed pause caused some other side issues
+python requires UAC, move to UAC section
+mysql, apache required UAC for start
+
+some weird char before git command
