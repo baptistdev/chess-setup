@@ -12,3 +12,7 @@ python requires UAC, move to UAC section
 mysql, apache required UAC for start
 
 some weird char before git command
+
+
+before setx get the collectivepath and append to path then
+keep the python and java in temp variable, append before setx only once

@@ -39,9 +39,9 @@ echo %relaunchPath%
 echo -------------- existing ----------------------
 REM type %instanceRoot%\tmp\collectpath.bat
 call %instanceRoot%\tmp\collectpath.bat
-echo %relaunchPath%
+echo !relaunchPath!
 echo -------------- altered ----------------------
-set PATH=%PATH%;%relaunchPath%
+set PATH=!PATH!;!relaunchPath!
 path
 
 
@@ -257,9 +257,9 @@ if "%step[UACSTEPS]%"=="false" (
   :: Need to reread on return
   CALL %runfile%
   call %instanceRoot%\tmp\collectpath.bat
-  echo %relaunchPath%
+  echo !relaunchPath!
   echo -------------- altered ----------------------
-  set PATH=%PATH%;%relaunchPath%
+  set PATH=!PATH!;!relaunchPath!
 
 
   echo step[UACSTEPS] : !step[UACSTEPS]!
