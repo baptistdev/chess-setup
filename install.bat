@@ -37,14 +37,11 @@ echo root = %root%
 
 echo %relaunchPath%
 echo -------------- existing ----------------------
-pause
-type %instanceRoot%\tmp\collectpath.bat
-pause
+REM type %instanceRoot%\tmp\collectpath.bat
 call %instanceRoot%\tmp\collectpath.bat
 echo %relaunchPath%
 echo -------------- altered ----------------------
-pause
-set PATH=%relaunchPath%
+set PATH=%PATH%;%relaunchPath%
 path
 pause
 
@@ -258,6 +255,12 @@ if "%step[UACSTEPS]%"=="false" (
 
   :: Need to reread on return
   CALL %runfile%
+  call %instanceRoot%\tmp\collectpath.bat
+  echo %relaunchPath%
+  echo -------------- altered ----------------------
+  set PATH=%PATH%;%relaunchPath%
+
+
   echo step[UACSTEPS] : !step[UACSTEPS]!
   echo step[RELAUNCHWITHENV] : !step[RELAUNCHWITHENV]!
   echo -----------------------------
@@ -562,9 +565,12 @@ exit /b
 REM Check if app is installed
 :CHECKRUNNABLE <app>
   set existcheck=false
-  for /f "delims=" %%i in ('where %1') do set existcheck=%%i
+  echo Checkrunnable for %1
+  for /f "delims=" %%i in ('where %1') do (
+    set existcheck=%%i
+  )
   echo Is Runnable for %1 : !existcheck!
-  pause
+  
   if exist "!existcheck!" (
     CALL :GREEN √ %1 [exists] !existcheck!
     echo %1 : !existcheck!
