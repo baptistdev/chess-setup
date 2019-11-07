@@ -40,16 +40,16 @@ echo root = %root%
 
 echo %relaunchPath%
 echo -------------- existing ----------------------
-pause
+
 type %instanceRoot%\tmp\collectpath.bat
-pause
+
 call %instanceRoot%\tmp\collectpath.bat
 echo %relaunchPath%
 echo -------------- altered ----------------------
-pause
+
 set PATH=%relaunchPath%
 path
-pause
+
 
 
 if exist %instanceRoot%\config.bat (
@@ -58,6 +58,7 @@ if exist %instanceRoot%\config.bat (
 ) else (
   echo Configuration not found loading defaults.
   set localREPO=
+  
     set localREPOUNCUser=
     set localREPOUNCPwd=
 
@@ -71,6 +72,8 @@ if exist %instanceRoot%\config.bat (
 
   if ""=="%localREPO%" (
     set /p localREPO="UNC Share for Local repo [Eg: 192.168.1.22/repos] : "
+    REM echo !localREPO!
+    REM pause
   )
   if ""=="%localREPOUNCUser%" (
     set /p localREPOUNCUser="UNC Share ( //%localREPO% ) User [Eg: domain\user] : "
@@ -105,20 +108,23 @@ if exist %instanceRoot%\config.bat (
   echo     User : %remoteREPOHTTPSUser% 
   echo     Pwd  : %remoteREPOHTTPSPwd% 
 
-  @echo set localREPO=%localREPO%>%instanceRoot%\config.bat
-  @echo     set localREPOUNCUser=%localREPOUNCUser%>>%instanceRoot%\config.bat
-  echo localREPOUNCUser = %instanceRoot%
-  @echo     set localREPOUNCPwd=%localREPOUNCPwd%>>%instanceRoot%\config.bat
-  @echo     set gitUser=%gitUser%>>%instanceRoot%\config.bat
-  @echo     set gitEmail=%gitEmail%>>%instanceRoot%\config.bat
+  @echo set localREPO=!localREPO!>%instanceRoot%\config.bat
+  @echo     set localREPOUNCUser=!localREPOUNCUser!>>%instanceRoot%\config.bat
 
-  @echo set remoteREPO=%remoteREPO%>>%instanceRoot%\config.bat
-  @echo     set remoteREPOHTTPSUser=%remoteREPOHTTPSUser%>>%instanceRoot%\config.bat
-  @echo     set remoteREPOHTTPSPwd=%remoteREPOHTTPSPwd%>>%instanceRoot%\config.bat
+  echo localREPOUNCUser = !instanceRoot!
+  @echo     set localREPOUNCPwd=!localREPOUNCPwd!>>%instanceRoot%\config.bat
+  @echo     set gitUser=!gitUser!>>%instanceRoot%\config.bat
+  @echo     set gitEmail=!gitEmail!>>%instanceRoot%\config.bat
+
+  @echo set remoteREPO=!remoteREPO!>>%instanceRoot%\config.bat
+  @echo     set remoteREPOHTTPSUser=!remoteREPOHTTPSUser!>>%instanceRoot%\config.bat
+  @echo     set remoteREPOHTTPSPwd=!remoteREPOHTTPSPwd!>>%instanceRoot%\config.bat
 
   @echo set instancename=%instancename%>>%instanceRoot%\config.bat
 
 )
+
+
 
 set runfile=%instanceRoot%\tmp\run.log.bat
 echo %runfile%
@@ -208,11 +214,7 @@ if "%step[UACSTEPS]%"=="false" (
     call :EXECQUEUEDFORRUNASADMINISTRATOR
 
     echo Post UAC PATH collected.
-    pause
-
-
-
-    pause
+   
     REM exit /b
 
     REM echo %relaunchPath%
@@ -272,10 +274,10 @@ if "%step[UACSTEPS]%"=="false" (
     pause
 
     echo step[PREREQS]=%step[PREREQS]%
-  pause
+
     if "!step[RELAUNCHWITHENV]!"=="true" (
       path
-      pause
+   
       call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
       
       REM PB : TODO -- Esure npm is available with path already set.
@@ -289,7 +291,7 @@ if "%step[UACSTEPS]%"=="false" (
       call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
       
 
-      call :EXECQUEUEDFORRUNASADMINISTRATOR
+   
       REM PB : TODO SHELLEXECUTE DOESNT WAIT...
       pause
 
@@ -321,7 +323,7 @@ if "%step[UACSTEPS]%"=="false" (
             echo !path!
             echo =========inside python
       )
-
+relaunchPath
       call :CHECKRUNNABLE java
       if "%existcheck%"=="false" (
             setx path "!javapath!;!path!"
@@ -390,6 +392,9 @@ exit /b
     ) else (
       REM Net Use \\%localREPO% /user:%localREPOUser% %localREPOPwd%
 
+
+     
+
       if "!step[REPOSCLONED]!"=="false" (
         (for %%a in (
           ember-masonry-grid
@@ -416,7 +421,9 @@ exit /b
       
       echo Installing Ember cli
       set existcheck=false
+      pause
       echo existcheck=%existcheck%
+      pause
       call :CHECKRUNNABLE ember
       echo existcheck=%existcheck%
       pause
