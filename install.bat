@@ -431,7 +431,7 @@ exit /b
         ) 
 
       cd %instanceRoot%\qms
-      git checkout genericMRWip --force
+      git checkout genericMRwip --force
       REM npm rebuild node-sass
       
       if "!step[PROJECTNPMINSTALL]!"=="false" (
