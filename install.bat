@@ -240,7 +240,7 @@ if "%step[UACSTEPS]%"=="false" (
     call :CHECKANDINSTALL code https://vscode-update.azurewebsites.net/latest/win32-x64/stable %mypath%\Downloads\vscode-win32-x64-latest-stable.exe
     REM call :CHECKANDINSTALL .net https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/NDP461-KB3102436-x86-x64-AllOS-ENU.exe %mypath%\Downloads\NDP461-KB3102436-x86-x64-AllOS-ENU.exe
     REM call :CHECKANDINSTALL python https://www.python.org/ftp/python/3.6.5/python-3.6.5-amd64.exe %mypath%\Downloads\python-3.6.5-amd64.exe
-
+    call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
     REM :SETUACSTEPS true
     set step[UACSTEPS]=true
     echo set step[UACSTEPS]=true>>%instanceRoot%\tmp\run.log.bat
@@ -277,12 +277,15 @@ if "%step[UACSTEPS]%"=="false" (
     if "!step[RELAUNCHWITHENV]!"=="true" (
       path
    
-      call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
+      
       
       REM PB : TODO -- Esure npm is available with path already set.
 
       CALL :INITFORRUNASADMINISTRATOR
-      call :RUNSTEP INSTALLWINBUILDTOOLS
+      call :CHECKBUILDTOOLS
+      if "!existbuildtools!" == "false" (
+          call :RUNSTEP INSTALLWINBUILDTOOLS
+      )
       echo xamppinstllpath %xamppinstllpath%
       call :CHECKANDINSTALLXAMPP %xamppinstllpath%\xampp-control.exe xampp https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER
       call :EXECQUEUEDFORRUNASADMINISTRATOR
@@ -313,30 +316,34 @@ if "%step[UACSTEPS]%"=="false" (
         )
       )
     ) else ( 
+      set check=false
+      set cachedpath=""
       call :CHECKRUNNABLE python 
       if "!existcheck!"=="false" (
-            setx path "C:\python27;!path!"
-            set path="C:\python27;!path!"
-            echo !path!
+            set cachedpath="C:\python27;"
+            set check=true
             echo =========inside python
       )
-relaunchPath
+
       call :CHECKRUNNABLE java
       if "!existcheck!"=="false" (
-            setx path "!javapath!;!path!"
-            set path="!javapath!;!path!"
-            echo !path!
+            set cachedpath=!javapath!;!cachedpath!
+            set check=true
             echo =========inside java
       )
 
+      if "!check!"=="true" (
+           set path=!cachedpath!;!path!
+           setx path "!cachedpath!;!path!"
+      )
+
       echo !path!
-      echo =============
-      pause
-      REM if "%step[RELAUNCHWITHENV]%"=="true" (
+      echo =============after python java chk
+      pause      REM if "%step[RELAUNCHWITHENV]%"=="true" (
       REM   echo Already relaunched.
       REM ) else (
         :: Preset paths that dont get set automatically. And are not available until relaunch.
-        echo setx path "%%path%%;C:\python27;%javapath%">%instanceroot%/tmp/setenv.bat
+        echo setx path "!path!;>%instanceroot%/tmp/setenv.bat
         echo pause>>%instanceroot%/tmp/setenv.bat
         start /w cmd /b /c %instanceroot%/tmp/setenv.bat
         set step[RELAUNCHWITHENV]=true
@@ -453,22 +460,24 @@ exit /b
       )
 
       REM BOWER INSTALL
-      (for %%a in (
+      for %%a in (
         qms
       ) do ( 
         cd %instanceRoot%\%%a
         echo %pwd%
         echo Calling Bower install FOR %%a
         call "./node_modules/.bin/bower" install
-      ))
+        
+      )
 
       echo " copying roboto"
+      pause
       mkdir %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
-      xcopy %localREPO%\repos\roboto %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
+      xcopy \\%localREPO%\repos\roboto %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
     )
 
 
-
+    pause
     call :INITDBANDSCHEMA
 
     REM cd ..
@@ -514,7 +523,7 @@ exit /b
     echo set step[DBSCHEMA]=%1>>%instanceRoot%\tmp\run.log.bat
     
   ) else (
-
+    echo INITDBANDSCHEMA already completed
   )
 exit /b
 
@@ -566,6 +575,13 @@ exit /b
 exit /b
 
 REM Check if app is installed
+:CHECKBUILDTOOLS
+  set existbuildtools=false
+  set mywhere="C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+  if exist %mywhere% (
+    set existbuildtools=true
+  )
+
 :CHECKRUNNABLE <app>
   set existcheck=false
   echo Checkrunnable for %1
