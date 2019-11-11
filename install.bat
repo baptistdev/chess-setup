@@ -210,20 +210,7 @@ if "%step[UACSTEPS]%"=="false" (
 
     echo Post UAC PATH collected.
    
-    REM exit /b
-
-    REM echo %relaunchPath%
-    REM echo -------------- existing ----------------------
-    REM pause
-    REM type %instanceRoot%\tmp\collectpath.bat
-    REM pause
-    REM call %instanceRoot%\tmp\collectpath.bat
-    REM echo %relaunchPath%
-    REM echo -------------- altered ----------------------
-    REM pause
-    REM REM set PATH=%PATH%;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\Git\cmd;C:\Users\baptistmis\bin;C:\Users\baptistmis\AppData\Roaming\npm;
-    REM path
-    REM pause
+    
 
   )
 
@@ -266,7 +253,7 @@ if "%step[UACSTEPS]%"=="false" (
   echo step[RELAUNCHWITHENV] : !step[RELAUNCHWITHENV]!
   echo -----------------------------
   pause
-
+  
   if "!step[UACSTEPS]!"=="true" (
 
     call git config --global user.name --replace-all "%gitUser%"
@@ -277,7 +264,6 @@ if "%step[UACSTEPS]%"=="false" (
     if "!step[RELAUNCHWITHENV]!"=="true" (
       path
    
-      
       
       REM PB : TODO -- Esure npm is available with path already set.
 
@@ -339,23 +325,17 @@ if "%step[UACSTEPS]%"=="false" (
 
       echo !path!
       echo =============after python java chk
-      pause      REM if "%step[RELAUNCHWITHENV]%"=="true" (
-      REM   echo Already relaunched.
-      REM ) else (
-        :: Preset paths that dont get set automatically. And are not available until relaunch.
-        echo setx path "!path!;>%instanceroot%/tmp/setenv.bat
-        echo pause>>%instanceroot%/tmp/setenv.bat
-        start /w cmd /b /c %instanceroot%/tmp/setenv.bat
+       :: Preset paths that dont get set automatically. And are not available until relaunch.
         set step[RELAUNCHWITHENV]=true
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
         cd %root%
-
+        
         call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
         REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
         REM start /i /wait cmd /k %setupFolder%\install.bat
-      REM )
+      
     )
   )
 )
