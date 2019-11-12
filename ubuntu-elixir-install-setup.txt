@@ -1,0 +1,35 @@
+1. git -> https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/Git-2.23.0-64-bit.exe
+2. node -> https://nodejs.org/dist/v10.16.0/node-v10.16.0-x64.msi
+3. code -> https://vscode-update.azurewebsites.net/latest/win32-x64/stable
+npm install -g windows-build-tools
+4. python -> https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi
+5. git config --global user.name --replace-all "mohan"
+   git config --global user.email --replace-all "mohangowda_in@yahoo.com"
+6. xamp -> https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe
+7. java -> https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip
+8. git clone //<server>/repos ember-masonry-grid
+   git clone //<server>/repos bbhverse
+   git clone //<server>/repos loopback
+   git clone //<server>/repos qms
+   git clone //<server>/repos ember-searchable-select
+   git clone //<server>/repos loopback-component-jsonapi
+   git clone //<server>/repos config
+   git clone //<server>/repos loopback-connector-ds
+9. ember -> npm install -g ember-cli
+10.cd %instanceRoot%\qms
+      git checkout genericMRwip --force
+11.npm install->
+   npm install loopback
+   npm install qms
+   npm install qms/server
+12.Bower install ->
+   ./node_modules/.bin/bower install
+13.mkdir %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
+   xcopy \\%localREPO%\repos\roboto %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
+14.INITDBANDSCHEMA ->
+call c:\xampp\mysql\bin\mysql -uroot -p -e "CREATE DATABASE elixir;"
+robocopy /E C:\chess\elixir\instances\elixir_01\loopback\common\models C:\chess\elixir\instances\elixir_01\loopback\common\schemaBuilderSource
+cd C:\chess\elixir\instances\elixir_01\loopback
+mkdir C:\chess\elixir\instances\elixir_01\loopback\qms\data\filestore
+cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js"
+del C:\chess\elixir\instances\elixir_01\loopback\qms\data\filestore
