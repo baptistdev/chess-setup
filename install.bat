@@ -318,12 +318,24 @@ if "%step[UACSTEPS]%"=="false" (
             echo =========inside java
       )
 
-      if "!check!"=="true" (
-           set path=!cachedpath!;!path!
-           setx path "!cachedpath!;!path!"
-      )
+      echo ---------------------------filteredpath-------------
+ 
+@Echo off & Setlocal EnableDelayedExpansion
+For %%M in ("!path:;=" "!") do Set "machine[%%M]=%%M"
+  
+Set filteredpath=
+For /f "tokens=2 delims==" %%M in ('Set machine[') do Set "filteredpath=!filteredpath!;%%~M"
 
+
+      if "!check!"=="true" (
+      
+           set path=!cachedpath!;!filteredpath:~1!;
+           setx path "!cachedpath!;!filteredpath:~1!"
+       
+      )
+echo ---------------------     filtered      ------------------------------
       echo !path!
+     
       echo =============after python java chk
        :: Preset paths that dont get set automatically. And are not available until relaunch.
         set step[RELAUNCHWITHENV]=true
