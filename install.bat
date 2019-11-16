@@ -521,6 +521,7 @@ exit /b
     start /wait cmd /b /c %instanceRoot%\tmp\mysql.bat
     REM PB : TODO -- Remove TEMP HACK to get the schema created.
     echo del %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+    echo rm  %instanceRoot%\loopback\common\schemaBuilderSource\*>>%instanceRoot%\tmp\mysql.bat
 
     set step[DBSCHEMA]=true
     echo set step[DBSCHEMA]=%1>>%instanceRoot%\tmp\run.log.bat
