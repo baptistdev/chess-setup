@@ -1,7 +1,4 @@
 @echo off 
-
-
-
 setlocal EnableDelayedExpansion
 
 color 0B 
@@ -13,17 +10,26 @@ call :TITLE "     BBH Elixir Installer "
 echo -----------------------------------
 
 set isGitBash=false
-call :checkIsGitBash
-echo Gitbash=%isGitBash%
+REM call :checkIsGitBash
+REM echo Gitbash=%isGitBash%
 
 set relaunchPath=%PATH%
 
+if "%PWD%"=="" (
+  :: Windows doesnt have the PWD env variable.
+  set thisBatchLaunchPath=%~dp0
+  set mypath=!cd!
+  set root=!mypath!
+  echo root=!root!
+) else (
+  set isGitBash=true
+  echo root=!root!
+  echo instanceRoot=!instanceRoot!
+  echo bash shell env should already be preset...
+  pause
+)
+
 set fastinstall=false
-set mypath=%cd%
-set root=%mypath%
-
-
-echo root=%root%
 
 if ""=="%1" ( set instancename=elixir_01
   ) else ( set instancename=%1
@@ -194,7 +200,7 @@ if "%step[UACSTEPS]%"=="false" (
     CALL :QUEUEFORRUNASADMINISTRATOR cd %root%
     set step[UACSTEPS]=start
     echo set step[UACSTEPS]=start>>%instanceRoot%\tmp\run.log.bat
-    CALL :QUEUEFORRUNASADMINISTRATOR cmd /b /c %root%\setup\install.bat
+    CALL :QUEUEFORRUNASADMINISTRATOR cmd /b /c %thisBatchLaunchPath%\install.bat
     call :EXECQUEUEDFORRUNASADMINISTRATOR
 
     echo UAC Steps completed.
@@ -259,6 +265,11 @@ if "%step[UACSTEPS]%"=="false" (
     call git config --global user.name --replace-all "%gitUser%"
     call git config --global user.email --replace-all "%gitUser%"
 
+    echo %localREPO%\
+    echo Net Use \\%localREPO%\repos ^/user^:%localREPOUNCUser% %localREPOUNCPwd%
+    Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+    pause
+    CALL :GITCLONE %localREPO%/repos %instanceRoot% setup
 
     echo step[PREREQS]=%step[PREREQS]%
     if "!step[RELAUNCHWITHENV]!"=="true" (
@@ -294,7 +305,7 @@ if "%step[UACSTEPS]%"=="false" (
         if "true"=="%isGitBash%" (
           call :BASHSTEPS
         ) else ( REM Switch to a git bash shell to continue
-          cd %root%
+          cd %instanceRoot%
           echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
           echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
@@ -340,7 +351,7 @@ echo ---------------------     filtered      ------------------------------
        :: Preset paths that dont get set automatically. And are not available until relaunch.
         set step[RELAUNCHWITHENV]=true
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
-        cd %root%
+        cd %instanceRoot%
         
         call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
@@ -381,7 +392,7 @@ exit /b
     if "true"=="%fastinstall%" (
       echo fastinstall : %fastinstall%
     ) else (
-      REM Net Use \\%localREPO% /user:%localREPOUser% %localREPOPwd%
+      Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
 
 
      
@@ -797,6 +808,7 @@ echo   %3
 echo   git clone //%1/%3.git %2\%3
 call git clone //%1/%3.git %2\%3
 
+pause
 if %ERRORLEVEL%==0 (
   echo Successful : Git Clone %3 
 ) else (
