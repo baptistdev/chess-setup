@@ -4,10 +4,10 @@
 #    Preparing Repository Configuration         #
 #################################################
 ROOT=~/chess/elixir
-mkdir $ROOT
-mkdir $ROOT/downloads
-mkdir $ROOT/runtime
-mkdir $ROOT/instances/elixir_01
+mkdir -p $ROOT
+mkdir -p $ROOT/downloads
+mkdir -p $ROOT/runtime
+mkdir -p $ROOT/instances/elixir_01
 INSTANCE_HOME=~/chess/elixir/instances/elixir_01
 file=$INSTANCE_HOME/config.prp
 if [ -f "$file" ]; then
@@ -49,21 +49,43 @@ fi
 #    Download Installation files                  #
 ###################################################
 
-read -p "download started, Press enter to continue"
 cd $ROOT/downloads
+mkdir -p $INSTANCE_HOME/tmp
+if [ -f $INSTANCE_HOME/tmp/download.log ]; then
+   read -p "XAMPP and JAVA already downloaded"
+   sleep 4
+else
+read -p "download started, Press enter to continue"
+sleep 4
 #XAMPP
 wget https://www.apachefriends.org/xampp-files/7.3.11/xampp-linux-x64-7.3.11-0-installer.run
-read -p "XAMPP download complete, Press enter to continue"
+status=$?
+if [ $status -eq 0 ]; then
+   echo "XAMPP_DOWNLOAD=yes" >> $INSTANCE_HOME/tmp/download.log
+   read -p "XAMPP download complete, Press enter to continue"
+   sleep 4
+else
+   echo "XAMPP_DOWNLOAD=no" >> $INSTANCE_HOME/tmp/download.log
+fi
 
 #JAVA
 wget https://download.java.net/openjdk/jdk13/ri/openjdk-13+33_linux-x64_bin.tar.gz
-read -p "JAVA download complete, Press enter to continue"
+status=$?
+if [ $status -eq 0 ]; then
+   echo "JAVA_DOWNLOAD=yes" >> $INSTANCE_HOME/tmp/download.log
+   read -p "JAVA download complete, Press enter to continue"
+   sleep 4
+else
+   echo "JAVA_DOWNLOAD=no" >> $INSTANCE_HOME/tmp/download.log
+fi
+fi
 
 ###################################################
 #   Installation                                  #
 ###################################################
 
 read -p "installation started, Press enter to continue"
+ sleep 4
 #git
 i=$(which git | wc -c)
 if [ $i -ne 0 ]; then
@@ -72,39 +94,50 @@ else
    sudo apt-get update
    sudo apt-get install git-core
    read -p "git install complete, Press enter to continue"
+   sleep 4
 fi
 
 #node
 n=$(which node | wc -c)
 if [ $n -ne 0 ]; then
    echo "node already installed"
+   sleep 4
 else
-   if [ -f ~/.nvm ]; then
+   ls ~/.nvm
+   nv=$? 
+   if [ $nv -eq 0 ]; then
       echo "alredy nvm installed"
+      sleep 4
    else
       cd ~
       git clone https://github.com/creationix/nvm.git .nvm
-      cd ~/.nvm
-      git checkout v0.33.9
-      . nvm.sh
    fi
+   cd ~/.nvm
+   git checkout v0.33.9
+   . ./nvm.sh
    nvm install 10.17.0
+   sleep 5 
    nvm use 10.17.0
    read -p "node install complete, Press enter to continue"
+   sleep 4
 fi
 
 #vscode
 c=$(which vscode | wc -c)
 if [ $c -ne 0 ]; then
    echo "code already installed"
+   sleep 4
 else
    sudo apt install snapd
    sudo snap install vscode --classic
 fi
 
 #xampp
-if [ -f /opt/lamp/xampp ]; then
+ls /opt
+st=$?
+if [ $st -eq 0 ]; then
    echo "xampp already installed"
+   sleep 4
 else
    cd $ROOT/downloads
    chmod +x ./xampp-linux-x64-7.3.11-0-installer.run
@@ -116,19 +149,23 @@ fi
 j=$(which java | wc -c)
 if [ $j -ne 0 ]; then
    echo "java already installed"
+   sleep 4
 else
    cd $ROOT/downloads
    tar -xzf openjdk-13+33_linux-x64_bin.tar.gz -C $ROOT/runtime
-   PATH=$ROOT/runtime/jdk-13/bin:$PATH
-   export $PATH
    read -p "code install complete, Press enter to continue"
+   sleep 4
 fi
+   nvm use 10.17.0
 
 #########################################################
 #         Clone Repository modules                      #
 #########################################################
 
 read -p "repository cloning started, Press enter to continue"
+sleep 4
+git config --global --add user.name $gitUser
+git config --global --add user.email $gitEmail
 mkdir -p ~/repos
 sudo mount //$localREPO/repos ~/repos -o username=$localREPOUNCUser,password=$localREPOUNCPwd,domain=$localREPOUNCDomain,vers=2.1
 cd $INSTANCE_HOME
@@ -137,31 +174,60 @@ do
     git clone ~/repos/$module.git
 done
 read -p "cloning modules complete, Press enter to continue"
+sleep 4
+
+#########################################################
+#       Install Ember                                   #
+#########################################################
+
+echo "Installing ember"
+sleep 4
+npm install -g ember-cli
+echo "Ember install completed"
+sleep 4
+
 
 #########################################################
 #        Installing Repository modules                  #
 #########################################################
 
 read -p "repository installation started, Press enter to continue"
+sleep 4
 for install in loopback qms qms/server
 do
     cd $INSTANCE_HOME/$install
     npm install
 done
 read -p "modules install complete, Press enter to continue"
+sleep 4
 
 #########################################################
 #       Bower install                                   #
 #########################################################
 
 read -p "bower installation started, Press enter to continue"
+sleep 4
 cd $INSTANCE_HOME/qms
 usr=$(whoami)
 sudo chown -R $usr ~/.cache
 sudo chown -R $usr ~/.config
 ./node_modules/.bin/bower install
 read -p "bower install complete, Press enter to continue"
+sleep 4
 
 mkdir -p $INSTANCE_HOME/qms/bower_components/materialize/dist/fonts 
 cp -r ~/repos/roboto $INSTANCE_HOME/qms/bower_components/materialize/dist/fonts
 
+###########################################################
+#       Intialize Database Schema                        #
+###########################################################
+
+sudo /opt/lampp/xampp start
+cd /opt/lampp/bin
+sleep 3
+sudo ./mysql -h localhost -u root -p -e "CREATE DATABASE elixir;"
+rsync -r $INSTANCE_HOME/loopback/common/models/ $INSTANCE_HOME/loopback/common/schemaBuilderSource
+cd  $INSTANCE_HOME/loopback
+mkdir -p  $INSTANCE_HOME/loopback/qms/data/filestore
+NODE_ENV=devmysql node sage-rw/bin/schemabuilder.js
+rm -rf $INSTANCE_HOME/loopback/qms/data/filestore
