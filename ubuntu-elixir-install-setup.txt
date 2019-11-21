@@ -33,3 +33,24 @@ cd C:\chess\elixir\instances\elixir_01\loopback
 mkdir C:\chess\elixir\instances\elixir_01\loopback\qms\data\filestore
 cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js"
 del C:\chess\elixir\instances\elixir_01\loopback\qms\data\filestore
+
+Setup cleanup ::
+==============
+Remove git 
+------
+sudo apt-get remove git
+
+Remove node
+----------
+nvm deactivate
+nvm uninstall 10.17.0
+
+Remove xampp
+----------
+sudo /opt/lampp/uninstall
+sudo rm -r /opt/lampp
+
+Remove vscode
+------------
+sudo snap remove vscode
+
