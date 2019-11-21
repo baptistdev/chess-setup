@@ -262,8 +262,8 @@ if "%step[UACSTEPS]%"=="false" (
   
   if "!step[UACSTEPS]!"=="true" (
 
-    call git config --global user.name --replace-all "%gitUser%"
-    call git config --global user.email --replace-all "%gitUser%"
+    call git config --global --add user.name "%gitUser%"
+    call git config --global --add user.email "%gitUser%"
 
     echo %localREPO%\
     echo Net Use \\%localREPO%\repos ^/user^:%localREPOUNCUser% %localREPOUNCPwd%
