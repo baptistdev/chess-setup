@@ -153,6 +153,10 @@ if [ $j -ne 0 ]; then
 else
    cd $ROOT/downloads
    tar -xzf openjdk-13+33_linux-x64_bin.tar.gz -C $ROOT/runtime
+   jst=$?
+   if [ $jst -eq 0 ]; then
+      export PATH=$ROOT/runtime/jdk-13/bin:$PATH
+   fi
    read -p "code install complete, Press enter to continue"
    sleep 4
 fi
