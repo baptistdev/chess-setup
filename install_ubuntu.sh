@@ -175,6 +175,9 @@ do
 done
 read -p "cloning modules complete, Press enter to continue"
 sleep 4
+cd $INSTANCE_HOME/qms
+git checkout .
+git checkout genericMRwip --force
 
 #########################################################
 #       Install Ember                                   #
@@ -227,7 +230,9 @@ cd /opt/lampp/bin
 sleep 3
 sudo ./mysql -h localhost -u root -p -e "CREATE DATABASE elixir;"
 rsync -r $INSTANCE_HOME/loopback/common/models/ $INSTANCE_HOME/loopback/common/schemaBuilderSource
-cd  $INSTANCE_HOME/loopback
-mkdir -p  $INSTANCE_HOME/loopback/qms/data/filestore
+mkdir -p  $INSTANCE_HOME/qms/data/filestore
+cd $INSTANCE_HOME/loopback
 NODE_ENV=devmysql node sage-rw/bin/schemabuilder.js
 rm -rf $INSTANCE_HOME/loopback/qms/data/filestore
+cd $INSTANCE_HOME/loopback/common/schemaBuilderSource
+rm -r *
