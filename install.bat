@@ -200,7 +200,7 @@ if "%step[UACSTEPS]%"=="false" (
     CALL :QUEUEFORRUNASADMINISTRATOR cd %root%
     set step[UACSTEPS]=start
     echo set step[UACSTEPS]=start>>%instanceRoot%\tmp\run.log.bat
-    CALL :QUEUEFORRUNASADMINISTRATOR cmd /b /c %thisBatchLaunchPath%\install.bat
+    CALL :QUEUEFORRUNASADMINISTRATOR cmd /b /c %thisBatchLaunchPath%install.bat
     call :EXECQUEUEDFORRUNASADMINISTRATOR
 
     echo UAC Steps completed.
@@ -352,7 +352,7 @@ echo ---------------------     filtered      ------------------------------
         set step[RELAUNCHWITHENV]=true
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
         cd %instanceRoot%
-        
+
         call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
@@ -532,7 +532,7 @@ exit /b
 exit /b
 
 
-:RUNASADMINISTRATOR ...
+:RUNASADMINISTRATOR
 
   CALL :INITFORRUNASADMINISTRATOR
   CALL :QUEUEFORRUNASADMINISTRATOR %*
