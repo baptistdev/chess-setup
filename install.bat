@@ -307,10 +307,12 @@ if "%step[UACSTEPS]%"=="false" (
         ) else ( REM Switch to a git bash shell to continue
           cd %instanceRoot%
           echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
-          echo "%str%git-bash" -c "./setup/install.bat"
-          call "%str%git-bash" -c "./setup/install.bat"
-          REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
-          REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+          set /p str=<%root%\gitst.txt
+          set str=%str:~0,-11%
+          REM echo "%str%git-bash" -c "./setup/install.bat"
+          REM call "%str%git-bash" -c "./setup/install.bat"
+          echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+          call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           del %instanceRoot%\tmp\gitbashrun.log.bat
         )
       )
@@ -358,9 +360,9 @@ echo ---------------------     filtered      ------------------------------
         where git > %root%\gitst.txt
         set /p str=<%root%\gitst.txt
         set str=%str:~0,-11%
-        echo "%str%git-bash" -c "./setup/install.bat"
-        call "%str%git-bash" -c "./setup/install.bat"
-        REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+        REM echo "%str%git-bash" -c "./setup/install.bat"
+        REM call "%str%git-bash" -c "./setup/install.bat"
+        call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
         REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
