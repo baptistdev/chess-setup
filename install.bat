@@ -122,8 +122,8 @@ if exist %instanceRoot%\config.bat (
   @echo set instancename=!instancename!>>%instanceRoot%\config.bat
 
 )
-
-
+REM copy softwares from local repo only if local repo exist
+call :CHECKLOCALGITREPO
 
 set runfile=%instanceRoot%\tmp\run.log.bat
 echo %runfile%
@@ -810,7 +810,14 @@ exit /b
     CALL :QUEUEFORRUNASADMINISTRATOR CALL %xamppinstllpath%\mysql\mysql_installservice.bat
 exit /b
 
-
+:CHECKLOCALGITREPO
+echo gitcheck for %1
+if exist \\%localREPO%\repos echo %localREPO% exist (
+    REM echo  XCOPY \\%localREPO%\repos\downloads %instanceRoot%\Downloads /I /E /Y
+    XCOPY \\%localREPO%\repos\downloads %instanceRoot%\Downloads /I /E /Y
+    REM call :GITCLONE %localREPO%\repos\downloads %instanceRoot%\Downloads test
+)
+exit /b
 
 :GITCLONE <from> <to> <repo>
 echo Cloning Repo
