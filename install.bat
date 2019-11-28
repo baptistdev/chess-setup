@@ -122,8 +122,19 @@ if exist %instanceRoot%\config.bat (
   @echo set instancename=!instancename!>>%instanceRoot%\config.bat
 
 )
-REM copy softwares from local repo only if local repo exist
-call :CHECKLOCALGITREPO
+REM REM copy softwares from local repo only if local repo exist
+REM call :CHECKLOCALGITREPO
+REM :CHECKLOCALGITREPO
+REM echo gitcheck for %localREPO% .....
+REM if exist \\%localREPO%\repos\downloads (
+REM     REM echo  XCOPY \\%localREPO%\repos\downloads %instanceRoot%\Downloads /I /E /Y
+REM     echo %localREPO%\repos\downloads found
+REM     pause
+REM     XCOPY \\%localREPO%\repos\downloads %instanceRoot%\Downloads /I /E /Y
+REM     REM call :GITCLONE %localREPO%\repos\downloads %instanceRoot%\Downloads test
+REM ) else (
+REM   echo localrepo : %localREPO%\repos\downloads not found )
+REM exit /b
 
 set runfile=%instanceRoot%\tmp\run.log.bat
 echo %runfile%
@@ -308,11 +319,12 @@ if "%step[UACSTEPS]%"=="false" (
           cd %instanceRoot%
           echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
           set /p str=<%root%\gitst.txt
-          set str=%str:~0,-11%
-          REM echo "%str%git-bash" -c "./setup/install.bat"
-          REM call "%str%git-bash" -c "./setup/install.bat"
-          echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
-          call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+          set str=!str:~0,-11!
+          pause
+          echo "%str%\git-bash" -c "./setup/install.bat"
+          call "%str%\git-bash" -c "./setup/install.bat"
+          REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+          REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           del %instanceRoot%\tmp\gitbashrun.log.bat
         )
       )
@@ -356,13 +368,22 @@ echo ---------------------     filtered      ------------------------------
         set step[RELAUNCHWITHENV]=true
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
         cd %instanceRoot%
+    
+        pause
 
-        where git > %root%\gitst.txt
+        C:\Windows\System32\where git > %root%\gitst.txt
+        echo %root%\gitst.txt
         set /p str=<%root%\gitst.txt
-        set str=%str:~0,-11%
-        REM echo "%str%git-bash" -c "./setup/install.bat"
-        REM call "%str%git-bash" -c "./setup/install.bat"
-        call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+        set str=!str:~0,-11!
+        pause
+        echo %str%
+        echo !str!
+        pause
+        echo if-------------------
+        pause
+        echo "!str!\git-bash" -c "./setup/install.bat"
+        call "!str!\git-bash" -c "./setup/install.bat"
+        REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
         REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
@@ -810,14 +831,7 @@ exit /b
     CALL :QUEUEFORRUNASADMINISTRATOR CALL %xamppinstllpath%\mysql\mysql_installservice.bat
 exit /b
 
-:CHECKLOCALGITREPO
-echo gitcheck for %1
-if exist \\%localREPO%\repos echo %localREPO% exist (
-    REM echo  XCOPY \\%localREPO%\repos\downloads %instanceRoot%\Downloads /I /E /Y
-    XCOPY \\%localREPO%\repos\downloads %instanceRoot%\Downloads /I /E /Y
-    REM call :GITCLONE %localREPO%\repos\downloads %instanceRoot%\Downloads test
-)
-exit /b
+
 
 :GITCLONE <from> <to> <repo>
 echo Cloning Repo
