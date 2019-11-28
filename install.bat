@@ -347,17 +347,17 @@ if "%step[UACSTEPS]%"=="false" (
 
       echo ---------------------------filteredpath-------------
  
-@Echo off & Setlocal EnableDelayedExpansion
-For %%M in ("!path:;=" "!") do Set "machine[%%M]=%%M"
-  
-Set filteredpath=
-For /f "tokens=2 delims==" %%M in ('Set machine[') do Set "filteredpath=!filteredpath!;%%~M"
+
+      For %%M in ("!path:;=" "!") do Set "machine[%%M]=%%M"
+        
+      Set filteredpath=
+      For /f "tokens=2 delims==" %%M in ('Set machine[') do Set "filteredpath=!filteredpath!;%%~M"
 
 
       if "!check!"=="true" (
       
-           set path=!cachedpath!;!filteredpath:~1!;
-           setx path "!cachedpath!;!filteredpath:~1!"
+        set path=!path!;!cachedpath!;!filteredpath:~1!;
+        setx path "!path!;!cachedpath!;!filteredpath:~1!"
        
       )
 echo ---------------------     filtered      ------------------------------
@@ -371,7 +371,7 @@ echo ---------------------     filtered      ------------------------------
     
         pause
 
-        C:\Windows\System32\where git > %root%\gitst.txt
+        where git > %root%\gitst.txt
         echo %root%\gitst.txt
         set /p str=<%root%\gitst.txt
         set str=!str:~0,-11!
