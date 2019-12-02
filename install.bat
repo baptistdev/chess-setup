@@ -26,9 +26,9 @@ if "%PWD%"=="" (
   echo root=!root!
   echo instanceRoot=!instanceRoot!
   echo bash shell env should already be preset...
-  pause
+  REM pause
 )
-
+  
 set fastinstall=false
 
 if ""=="%1" ( set instancename=elixir_01
@@ -39,6 +39,8 @@ mkdir %instanceRoot%
 mkdir %instanceRoot%\tmp
 echo instanceRoot = %instanceRoot%
 echo root = %root%
+
+
 
 
 echo %relaunchPath%
@@ -156,6 +158,8 @@ set step[UACSTEPS]=false
 set step[NPMUPGRADE]=false
 set step[DBSCHEMA]=false
 
+REM call :INITDBANDSCHEMA
+
 REM Load previosly completed steps as skip config
 if exist %runfile% (
   echo Loading Runtime State
@@ -176,7 +180,7 @@ set existcheck=false
 
 if "%step[PREREQS]%"=="true" (
   echo Prerequistes install already completed.
-  pause
+  REM pause
   REM PB :TODO -- We still need to check if we are in bash before running the BASHSTEPS.
   call :BASHSTEPS 
 
@@ -235,16 +239,18 @@ if "%step[UACSTEPS]%"=="false" (
   pause
   if "%step[UACSTEPS]%"=="start" (
     :: We r now in a new UAC SHELL where we can do UAC steps.
-    call :CHECKANDINSTALL git https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/Git-2.23.0-64-bit.exe %mypath%\Downloads\Git-2.23.0-64-bit.exe
+    REM  <name> <intsallerfile> <installerpath> <url> <installer>
     
-    call :CHECKANDINSTALL node https://nodejs.org/dist/v10.16.0/node-v10.16.0-x64.msi %mypath%\Downloads\node-v10.16.0-x64.msi RUNMSIINSTALLER  
+    call :CHECKANDINSTALL git  Git-2.23.0-64-bit.exe %mypath%\Downloads\ https://github.com/git-for-windows/git/releases/download/v2.23.0.windows.1/Git-2.23.0-64-bit.exe
+    
+    call :CHECKANDINSTALL node node-v10.16.0-x64.msi %mypath%\Downloads\ https://nodejs.org/dist/v10.16.0/node-v10.16.0-x64.msi  RUNMSIINSTALLER  
     REM PB : TODO -- Once we have git and node in place relaunch batch file to clone the setup from repo and
     REM  -- hand over he installation there... and skip the rest here...
 
-    call :CHECKANDINSTALL code https://vscode-update.azurewebsites.net/latest/win32-x64/stable %mypath%\Downloads\vscode-win32-x64-latest-stable.exe
+    call :CHECKANDINSTALL code vscode-win32-x64-latest-stable.exe %mypath%\Downloads\ https://vscode-update.azurewebsites.net/latest/win32-x64/stable 
     REM call :CHECKANDINSTALL .net https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/NDP461-KB3102436-x86-x64-AllOS-ENU.exe %mypath%\Downloads\NDP461-KB3102436-x86-x64-AllOS-ENU.exe
     REM call :CHECKANDINSTALL python https://www.python.org/ftp/python/3.6.5/python-3.6.5-amd64.exe %mypath%\Downloads\python-3.6.5-amd64.exe
-    call :CHECKANDINSTALL python https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi %mypath%\Downloads\python-2.7.16.amd64.msi RUNMSIINSTALLER
+    call :CHECKANDINSTALL python python-2.7.16.amd64.msi %mypath%\Downloads\ https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi RUNMSIINSTALLER
     REM :SETUACSTEPS true
     set step[UACSTEPS]=true
     echo set step[UACSTEPS]=true>>%instanceRoot%\tmp\run.log.bat
@@ -279,9 +285,7 @@ if "%step[UACSTEPS]%"=="false" (
     echo %localREPO%\
     echo Net Use \\%localREPO%\repos ^/user^:%localREPOUNCUser% %localREPOUNCPwd%
     Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
-    pause
-    CALL :GITCLONE %localREPO%/repos %instanceRoot% setup
-
+    REM pause
     echo step[PREREQS]=%step[PREREQS]%
     if "!step[RELAUNCHWITHENV]!"=="true" (
       path
@@ -295,13 +299,17 @@ if "%step[UACSTEPS]%"=="false" (
           call :RUNSTEP INSTALLWINBUILDTOOLS
       )
       echo xamppinstllpath %xamppinstllpath%
-      call :CHECKANDINSTALLXAMPP %xamppinstllpath%\xampp-control.exe xampp https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER
+       REM   <runnablename> <name> <url> <DownloadedFile> <installer>
+       REM  <name> <intsallerfile> <installerpath> <url> <installer> <runnablename>
+      call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe
       call :EXECQUEUEDFORRUNASADMINISTRATOR
-      
-      call :CHECKANDINSTALLJAVA openjdk-13.0.1_windows-x64_bin java https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip  %mypath%\Downloads\openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER
+       REM   <name> <url> <DownloadedFile> <installer>   
+       REM  <name> <intsallerfile> <installerpath> <url> <installer> <version>
+
+      call :CHECKANDINSTALLJAVA java openjdk-13.0.1_windows-x64_bin.zip %mypath%\Downloads\ https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER openjdk-13.0.1_windows-x64_bin 
       
       REM PB : TODO SHELLEXECUTE DOESNT WAIT...
-      pause
+      REM pause
 
       echo PREREQS Install completed
 
@@ -320,9 +328,15 @@ if "%step[UACSTEPS]%"=="false" (
           echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
           set /p str=<%root%\gitst.txt
           set str=!str:~0,-11!
+<<<<<<< HEAD
+          
+          echo "%str%git-bash" -c "./setup/install.bat"
+          call "%str%git-bash" -c "./setup/install.bat"
+=======
           pause
           echo "%str%\git-bash" -c "./setup/install.bat"
           call "%str%\git-bash" -c "./setup/install.bat"
+>>>>>>> 5ae2169ca0408b87ab8a3a4eb099d00e01a788c3
           REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           del %instanceRoot%\tmp\gitbashrun.log.bat
@@ -369,13 +383,22 @@ echo ---------------------     filtered      ------------------------------
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
         cd %instanceRoot%
     
+<<<<<<< HEAD
+        REM pause
+=======
         pause
+>>>>>>> 5ae2169ca0408b87ab8a3a4eb099d00e01a788c3
 
         where git > %root%\gitst.txt
         echo %root%\gitst.txt
         set /p str=<%root%\gitst.txt
         set str=!str:~0,-11!
         pause
+<<<<<<< HEAD
+        echo "!str!git-bash" -c "./setup/install.bat"
+        call "!str!git-bash" -c "./setup/install.bat"
+        call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+=======
         echo %str%
         echo !str!
         pause
@@ -384,6 +407,7 @@ echo ---------------------     filtered      ------------------------------
         echo "!str!\git-bash" -c "./setup/install.bat"
         call "!str!\git-bash" -c "./setup/install.bat"
         REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+>>>>>>> 5ae2169ca0408b87ab8a3a4eb099d00e01a788c3
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
         REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
@@ -462,7 +486,7 @@ exit /b
       echo existcheck=!existcheck!
       call :CHECKRUNNABLE ember
       echo existcheck=!existcheck!
-      pause
+      REM pause
       if "!existcheck!"=="true" (
           echo   Already Installed %2
         ) else (
@@ -504,15 +528,16 @@ exit /b
       )
 
       echo " copying roboto"
-      pause
+      REM pause
       mkdir %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
       xcopy \\%localREPO%\repos\roboto %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
     )
 
 
-    pause
+    REM pause
+   
     call :INITDBANDSCHEMA
-
+    REM pause
     REM cd ..
     REM ember s
 
@@ -522,43 +547,61 @@ exit /b
     REM Install chrome ember inspector..
     REM https://stackoverflow.com/questions/24612297/why-is-my-ember-cli-build-time-so-slow-on-windows
 
-    
+    REM pause
   
 
 exit /b
 
 :INITDBANDSCHEMA
   if "!step[DBSCHEMA]!"=="false" (
-    MKDIR %instanceRoot%\qms\data\filestore
+   MKDIR %instanceRoot%\qms\data\filestore
     echo Initializing DB and schema
     MKDIR %instanceRoot%\loopback\common\schemaBuilderSource
     REM start /WAIT  cmd /k 
-    echo call %xamppinstllpath%\mysql\bin\mysql -uroot -p -e "CREATE DATABASE elixir;">%instanceRoot%\tmp\mysql.bat
-    
+    echo %instanceRoot%
+  
+
+    echo call %xamppinstllpath%\mysql\bin\mysql -uroot -p -e "CREATE DATABASE elixir;">>%instanceRoot%\tmp\mysql.bat
+    echo pause
+
     REM echo mkdir
     REM start /WAIT cmd /k 
     echo robocopy /E %instanceRoot%\loopback\common\models %instanceRoot%\loopback\common\schemaBuilderSource>>%instanceRoot%\tmp\mysql.bat
 
+  
     echo cd %instanceRoot%\loopback>>%instanceRoot%\tmp\mysql.bat
     REM set NODE_ENV=devmysql
     REM start /wait cmd /k 
 
+  
     REM PB : TODO -- loopback filestore connector doesn't honor relative path !? always looks for loopback root project folder !?
     REM TEMP HACK to get the schema created.
     echo mkdir %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
     echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>%instanceRoot%\tmp\mysql.bat
 
-    start /wait cmd /b /c %instanceRoot%\tmp\mysql.bat
+    echo del /s /q  %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+  
+    echo del /s /q %instanceRoot%\loopback\common\schemaBuilderSource\*.*>>%instanceRoot%\tmp\mysql.bat
+    
+    REM del /s /q "%instanceRoot%\loopback\common\schemaBuilderSource\*.*"
+    REM start /wait cmd /b /c %instanceRoot%\tmp\mysql.bat
+    cmd /C start /wait  %instanceRoot%\tmp\mysql.bat
+   
+    
+    pause
     REM PB : TODO -- Remove TEMP HACK to get the schema created.
-    echo del %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
-    echo rm  %instanceRoot%\loopback\common\schemaBuilderSource\*>>%instanceRoot%\tmp\mysql.bat
+    REM echo del %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+    REM echo rm  %instanceRoot%\loopback\common\schemaBuilderSource\*>>%instanceRoot%\tmp\mysql.bat
 
+  
     set step[DBSCHEMA]=true
     echo set step[DBSCHEMA]=%1>>%instanceRoot%\tmp\run.log.bat
-    
+
+  
   ) else (
     echo INITDBANDSCHEMA already completed
   )
+
 exit /b
 
 
@@ -600,7 +643,7 @@ exit /b
 
 :QUEUEFORRUNASADMINISTRATOR ...
 echo %*
-pause
+REM pause
  echo %*>>%instanceRoot%\tmp\runasadmin.bat
 exit /b
 
@@ -616,7 +659,7 @@ REM Check if app is installed
     set existbuildtools=true
   )
 
-:CHECKRUNNABLE <app>
+:CHECKRUNNABLE <name>
   set existcheck=false
   echo Checkrunnable for %1
   for /f "delims=" %%i in ('where %1') do (
@@ -682,38 +725,43 @@ exit /b
     echo set step[INSTALLWINBUILDTOOLS]=true>>%runfile%
   
 exit /b
+REM <url> <File> <name> <notinstalled>
 
-:CHECKANDINSTALLXAMPP <runnablename> <name> <url> <DownloadedFile> <installer>
-  echo Detecting %1
-  if exist %1 (
-    echo %1 already installed
+REM :CHECKANDINSTALLXAMPP <runnablename> <name> <url> <DownloadedFile> <installer>
+:CHECKANDINSTALLXAMPP <name>  <url> <installer> <runnablename>
+
+REM pause
+echo Detecting %6
+  if exist %6 (
+    echo %6 already installed
     call :XAMPPSERVICESSTART
-  ) else ( echo   Installing %1
-    if "%4" == "" (
+  ) else ( echo   Installing %6
+    if "%3%2" == "" (
 
-      CALL :GETINSTALLER %3 %4 %2 false
-      CALL :RUNINSTALLER %4 %2 false
+      CALL :GETINSTALLER %4 %3%2 %1 false
+      CALL :RUNINSTALLER %3%2 %1 false
     ) else (
 
-      CALL :GETINSTALLER %3 %4 %2 false
-      CALL :%5 %4 %2 false
+      CALL :GETINSTALLER %4 %3%2 %1 false
+      CALL :%5 %3%2 %1 false
     ) 
   )
 exit /b
 
-:CHECKANDINSTALLJAVA <version> <name> <url> <DownloadedFile> <installer>
-  echo Detecting %2
-  call :CHECKRUNNABLE %2
+REM :CHECKANDINSTALLJAVA <version> <name> <url> <DownloadedFile> <installer>
+:CHECKANDINSTALLJAVA  <name> <intsallerfile> <installerpath> <url> <installer> <version>
+  echo Detecting %1
+  call :CHECKRUNNABLE %1
   if "!existcheck!"=="true" (
-    echo %2 already installed
-  ) else ( echo   Installing %2
-    if exist "%4" (
+    echo %1 already installed
+  ) else ( echo   Installing %1
+    if exist "%3%2" (
 
-      CALL :%5 %4 %2 %1 false
+      CALL :%5 %3%2 %1 %6 false
     ) else (
 
-      CALL :GETINSTALLER %3 %4 %2 false
-      CALL :%5 %4 %2 %1 false
+      CALL :GETINSTALLER %4 %3%2 %1 false
+      CALL :%5 %3%2 %1 %6 false
     ) 
   )
 exit /b
@@ -745,39 +793,70 @@ exit /b
   )
 exit /b
 
-:CHECKANDINSTALL <name> <url> <DownloadedFile> <installer>
+REM :CHECKANDINSTALL <name> <url> <DownloadedFile> <installer>
+:CHECKANDINSTALL <name> <intsallerfile> <installerpath> <url> <installer>
 REM echo Detecting %1
+
+
   call :CHECKRUNNABLE %1 
   if "!existcheck!"=="true" (
     echo     %1 already installed
   ) else (
     echo   Installing %1
     if "%4" == "" (
-      CALL :GETINSTALLER %2 %3 %1 false
-      CALL :RUNINSTALLER %3 %1 false
+      CALL :GETINSTALLER  %1 %2 %3 %4 false
+      CALL :RUNINSTALLER  %1 %3%2false
     ) else (
-      CALL :GETINSTALLER %2 %3 %1 false
-      CALL :%4 %3 %1 false
+      CALL :GETINSTALLER  %1 %2 %3 %4 false
+      CALL :%5 %3%2 %1 false
     )
    
   )
 exit /b
 
-:GETINSTALLER <url> <File> <name> <notinstalled>
-  if exist %2 (
+REM REM :GETINSTALLER <url> <File> <name> <notinstalled>
+REM :GETINSTALLER  <name> <intsallerfile> <installerpath> <url> <notinstalled>
+REM   if exist %3%2 (
+REM      echo   using previously downloaded installer %3%2
+REM   ) else (
+REM      echo   downloading %1 installer
+REM      CALL :DOWNLOAD %4 %3%2
+REM   )
+REM exit /b
+
+REM :GETINSTALLER <url> <File> <name> <notinstalled>
+:GETINSTALLER <name> <intsallerfile> <installerpath> <url> <notinstalled>
+echo -------------------------path 
+REM pause
+  if exist %3%2 (
+   
      echo   using previously downloaded installer %2
+   
   ) else (
-     echo   downloading %3 installer
-     CALL :DOWNLOAD %1 %2
+    echo %%3%2% not exist 
+   
+    if exist \\%localREPO%\repos\downloads\%2 (
+     
+      echo %localREPO%\repos\downloads\%2 found
+      COPY \\%localREPO%\repos\downloads\%2 %3 
+     
+    ) else (
+      
+      echo   downloading %1 installer
+      CALL :DOWNLOAD %4 %3%2
+     
+    )
+       
   )
 exit /b
 
-:RUNINSTALLER <File> <name> <notinstalled>
-  echo   Installing %2
+REM :RUNINSTALLER <File> <name> <notinstalled>
+:RUNINSTALLER <name> <intsallerfile> <installerpath> <notinstalled>
+  echo   Installing %1
   START /WAIT %1 /VERYSILENT /MERGETASKS=!runcode
-  call :CHECKRUNNABLE %2
+  call :CHECKRUNNABLE %1
   if "!existcheck!"=="true" (
-    echo   Installed %2
+    echo   Installed %1
   ) else (
     CALL :FATAL "  INSTALL FAILED %1"
   )  
@@ -839,7 +918,7 @@ echo   %3
 echo   git clone //%1/%3.git %2\%3
 call git clone //%1/%3.git %2\%3
 
-pause
+
 if %ERRORLEVEL%==0 (
   echo Successful : Git Clone %3 
 ) else (
