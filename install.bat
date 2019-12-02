@@ -328,15 +328,9 @@ if "%step[UACSTEPS]%"=="false" (
           echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
           set /p str=<%root%\gitst.txt
           set str=!str:~0,-11!
-<<<<<<< HEAD
           
           echo "%str%git-bash" -c "./setup/install.bat"
           call "%str%git-bash" -c "./setup/install.bat"
-=======
-          pause
-          echo "%str%\git-bash" -c "./setup/install.bat"
-          call "%str%\git-bash" -c "./setup/install.bat"
->>>>>>> 5ae2169ca0408b87ab8a3a4eb099d00e01a788c3
           REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           del %instanceRoot%\tmp\gitbashrun.log.bat
@@ -383,31 +377,16 @@ echo ---------------------     filtered      ------------------------------
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
         cd %instanceRoot%
     
-<<<<<<< HEAD
         REM pause
-=======
-        pause
->>>>>>> 5ae2169ca0408b87ab8a3a4eb099d00e01a788c3
 
         where git > %root%\gitst.txt
         echo %root%\gitst.txt
         set /p str=<%root%\gitst.txt
         set str=!str:~0,-11!
         pause
-<<<<<<< HEAD
         echo "!str!git-bash" -c "./setup/install.bat"
         call "!str!git-bash" -c "./setup/install.bat"
         call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
-=======
-        echo %str%
-        echo !str!
-        pause
-        echo if-------------------
-        pause
-        echo "!str!\git-bash" -c "./setup/install.bat"
-        call "!str!\git-bash" -c "./setup/install.bat"
-        REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
->>>>>>> 5ae2169ca0408b87ab8a3a4eb099d00e01a788c3
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
         REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
