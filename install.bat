@@ -434,7 +434,7 @@ exit /b
         (for %%a in (
           ember-masonry-grid
           bbhverse
-          loopback
+          server
           qms
           ember-searchable-select
           loopback-component-jsonapi
@@ -480,7 +480,7 @@ exit /b
       if "!step[PROJECTNPMINSTALL]!"=="false" (
         :: NPM INSTALL
         for %%a in (
-          loopback
+          server
           qms
           qms/server
         ) do ( 
@@ -535,7 +535,7 @@ exit /b
   if "!step[DBSCHEMA]!"=="false" (
    MKDIR %instanceRoot%\qms\data\filestore
     echo Initializing DB and schema
-    MKDIR %instanceRoot%\loopback\common\schemaBuilderSource
+    MKDIR %instanceRoot%\server\common\schemaBuilderSource
     REM start /WAIT  cmd /k 
     echo %instanceRoot%
   
@@ -545,32 +545,32 @@ exit /b
 
     REM echo mkdir
     REM start /WAIT cmd /k 
-    echo robocopy /E %instanceRoot%\loopback\common\models %instanceRoot%\loopback\common\schemaBuilderSource>>%instanceRoot%\tmp\mysql.bat
+    echo robocopy /E %instanceRoot%\server\common\models %instanceRoot%\server\common\schemaBuilderSource>>%instanceRoot%\tmp\mysql.bat
 
   
-    echo cd %instanceRoot%\loopback>>%instanceRoot%\tmp\mysql.bat
+    echo cd %instanceRoot%\server>>%instanceRoot%\tmp\mysql.bat
     REM set NODE_ENV=devmysql
     REM start /wait cmd /k 
 
   
-    REM PB : TODO -- loopback filestore connector doesn't honor relative path !? always looks for loopback root project folder !?
+    REM PB : TODO -- server filestore connector doesn't honor relative path !? always looks for server root project folder !?
     REM TEMP HACK to get the schema created.
-    echo mkdir %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+    echo mkdir %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
     echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>%instanceRoot%\tmp\mysql.bat
 
-    echo del /s /q  %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+    echo del /s /q  %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
   
-    echo del /s /q %instanceRoot%\loopback\common\schemaBuilderSource\*.*>>%instanceRoot%\tmp\mysql.bat
+    echo del /s /q %instanceRoot%\server\common\schemaBuilderSource\*.*>>%instanceRoot%\tmp\mysql.bat
     
-    REM del /s /q "%instanceRoot%\loopback\common\schemaBuilderSource\*.*"
+    REM del /s /q "%instanceRoot%\server\common\schemaBuilderSource\*.*"
     REM start /wait cmd /b /c %instanceRoot%\tmp\mysql.bat
     cmd /C start /wait  %instanceRoot%\tmp\mysql.bat
    
     
     pause
     REM PB : TODO -- Remove TEMP HACK to get the schema created.
-    REM echo del %instanceRoot%\loopback\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
-    REM echo rm  %instanceRoot%\loopback\common\schemaBuilderSource\*>>%instanceRoot%\tmp\mysql.bat
+    REM echo del %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+    REM echo rm  %instanceRoot%\server\common\schemaBuilderSource\*>>%instanceRoot%\tmp\mysql.bat
 
   
     set step[DBSCHEMA]=true
