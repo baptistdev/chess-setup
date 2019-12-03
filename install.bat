@@ -180,7 +180,7 @@ set existcheck=false
 
 if "%step[PREREQS]%"=="true" (
   echo Prerequistes install already completed.
-  REM pause
+  pause
   REM PB :TODO -- We still need to check if we are in bash before running the BASHSTEPS.
   call :BASHSTEPS 
 
@@ -285,7 +285,10 @@ if "%step[UACSTEPS]%"=="false" (
     echo %localREPO%\
     echo Net Use \\%localREPO%\repos ^/user^:%localREPOUNCUser% %localREPOUNCPwd%
     Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
-    REM pause
+
+    pause
+    CALL :GITCLONE %localREPO%/repos %instanceRoot% setup
+
     echo step[PREREQS]=%step[PREREQS]%
     if "!step[RELAUNCHWITHENV]!"=="true" (
       path
@@ -301,12 +304,12 @@ if "%step[UACSTEPS]%"=="false" (
       echo xamppinstllpath %xamppinstllpath%
        REM   <runnablename> <name> <url> <DownloadedFile> <installer>
        REM  <name> <intsallerfile> <installerpath> <url> <installer> <runnablename>
-      call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe
+      call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %xamppinstllpath%\xampp-control.exe XAMPPINSTALLER 
       call :EXECQUEUEDFORRUNASADMINISTRATOR
        REM   <name> <url> <DownloadedFile> <installer>   
        REM  <name> <intsallerfile> <installerpath> <url> <installer> <version>
 
-      call :CHECKANDINSTALLJAVA java openjdk-13.0.1_windows-x64_bin.zip %mypath%\Downloads\ https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER openjdk-13.0.1_windows-x64_bin 
+      call :CHECKANDINSTALLJAVA java openjdk-13.0.1_windows-x64_bin.zip %mypath%\Downloads\ https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip openjdk-13.0.1_windows-x64_bin JAVAINSTALLER  
       
       REM PB : TODO SHELLEXECUTE DOESNT WAIT...
       REM pause
@@ -329,8 +332,10 @@ if "%step[UACSTEPS]%"=="false" (
           set /p str=<%root%\gitst.txt
           set str=!str:~0,-11!
           
-          echo "%str%git-bash" -c "./setup/install.bat"
-          call "%str%git-bash" -c "./setup/install.bat"
+      
+          pause
+          echo "!str!git-bash" -c "./setup/install.bat"
+          call "!str!git-bash" -c "./setup/install.bat"
           REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           del %instanceRoot%\tmp\gitbashrun.log.bat
@@ -384,9 +389,11 @@ echo ---------------------     filtered      ------------------------------
         set /p str=<%root%\gitst.txt
         set str=!str:~0,-11!
         pause
+      
         echo "!str!git-bash" -c "./setup/install.bat"
         call "!str!git-bash" -c "./setup/install.bat"
-        call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+        pause
+        REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
         REM start /i "%windir%\explorer.exe" "%windir%\system32\cmd.exe"
         REM start /w "%windir%\explorer.exe" "%setupFolder%\install.bat"
@@ -553,7 +560,7 @@ exit /b
     REM start /wait cmd /k 
 
   
-    REM PB : TODO -- server filestore connector doesn't honor relative path !? always looks for server root project folder !?
+    REM PB : TODO -- server filestore connector doesn't honor relative path !? always looks for loopback root project folder !?
     REM TEMP HACK to get the schema created.
     echo mkdir %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
     echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>%instanceRoot%\tmp\mysql.bat
@@ -707,22 +714,22 @@ exit /b
 REM <url> <File> <name> <notinstalled>
 
 REM :CHECKANDINSTALLXAMPP <runnablename> <name> <url> <DownloadedFile> <installer>
-:CHECKANDINSTALLXAMPP <name>  <url> <installer> <runnablename>
+:CHECKANDINSTALLXAMPP <name> <intsallerfile> <installerpath> <url> <runnablename> <installer> 
 
 REM pause
-echo Detecting %6
-  if exist %6 (
-    echo %6 already installed
+echo Detecting %5
+  if exist %5 (
+    echo %5 already installed
     call :XAMPPSERVICESSTART
-  ) else ( echo   Installing %6
-    if "%3%2" == "" (
+  ) else ( echo   Installing %5
+    if "%6" == "" (
 
-      CALL :GETINSTALLER %4 %3%2 %1 false
-      CALL :RUNINSTALLER %3%2 %1 false
+      CALL :GETINSTALLER %1 %2 %3 %4 false
+      CALL :RUNINSTALLER %1 %2 %3 false
     ) else (
 
-      CALL :GETINSTALLER %4 %3%2 %1 false
-      CALL :%5 %3%2 %1 false
+      CALL :GETINSTALLER %1 %2 %3 %4 false
+      CALL : %1 %2 %3 %6 false
     ) 
   )
 exit /b
@@ -739,7 +746,7 @@ REM :CHECKANDINSTALLJAVA <version> <name> <url> <DownloadedFile> <installer>
       CALL :%5 %3%2 %1 %6 false
     ) else (
 
-      CALL :GETINSTALLER %4 %3%2 %1 false
+      CALL :GETINSTALLER %1 %2 %3 %4 false
       CALL :%5 %3%2 %1 %6 false
     ) 
   )
@@ -782,9 +789,10 @@ REM echo Detecting %1
     echo     %1 already installed
   ) else (
     echo   Installing %1
-    if "%4" == "" (
+    if "%5" == "" (
       CALL :GETINSTALLER  %1 %2 %3 %4 false
-      CALL :RUNINSTALLER  %1 %3%2false
+	  REM pause
+      CALL :RUNINSTALLER  %1 %2 %3 false
     ) else (
       CALL :GETINSTALLER  %1 %2 %3 %4 false
       CALL :%5 %3%2 %1 false
@@ -812,7 +820,7 @@ REM pause
      echo   using previously downloaded installer %2
    
   ) else (
-    echo %%3%2% not exist 
+    echo %3%2% not exist 
    
     if exist \\%localREPO%\repos\downloads\%2 (
      
@@ -832,12 +840,12 @@ exit /b
 REM :RUNINSTALLER <File> <name> <notinstalled>
 :RUNINSTALLER <name> <intsallerfile> <installerpath> <notinstalled>
   echo   Installing %1
-  START /WAIT %1 /VERYSILENT /MERGETASKS=!runcode
+  START /WAIT %3%2 /VERYSILENT /MERGETASKS=!runcode
   call :CHECKRUNNABLE %1
   if "!existcheck!"=="true" (
     echo   Installed %1
   ) else (
-    CALL :FATAL "  INSTALL FAILED %1"
+    CALL :FATAL "  INSTALL FAILED %3%2"
   )  
 exit /b
 
