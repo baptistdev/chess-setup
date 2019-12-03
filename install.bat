@@ -309,7 +309,7 @@ if "%step[UACSTEPS]%"=="false" (
        REM   <name> <url> <DownloadedFile> <installer>   
        REM  <name> <intsallerfile> <installerpath> <url> <installer> <version>
 
-      call :CHECKANDINSTALLJAVA java openjdk-13.0.1_windows-x64_bin.zip %mypath%\Downloads\ https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip openjdk-13.0.1_windows-x64_bin JAVAINSTALLER  
+      call :CHECKANDINSTALLJAVA java openjdk-13.0.1_windows-x64_bin.zip %mypath%\Downloads\ https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER openjdk-13.0.1_windows-x64_bin  
       
       REM PB : TODO SHELLEXECUTE DOESNT WAIT...
       REM pause
