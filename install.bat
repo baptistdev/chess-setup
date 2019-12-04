@@ -304,7 +304,7 @@ if "%step[UACSTEPS]%"=="false" (
       echo xamppinstllpath %xamppinstllpath%
        REM   <runnablename> <name> <url> <DownloadedFile> <installer>
        REM  <name> <intsallerfile> <installerpath> <url> <installer> <runnablename>
-      call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe %xamppinstllpath%\xampp-control.exe XAMPPINSTALLER 
+      call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe 
       call :EXECQUEUEDFORRUNASADMINISTRATOR
        REM   <name> <url> <DownloadedFile> <installer>   
        REM  <name> <intsallerfile> <installerpath> <url> <installer> <version>
@@ -712,24 +712,24 @@ exit /b
   
 exit /b
 REM <url> <File> <name> <notinstalled>
-
+     
 REM :CHECKANDINSTALLXAMPP <runnablename> <name> <url> <DownloadedFile> <installer>
-:CHECKANDINSTALLXAMPP <name> <intsallerfile> <installerpath> <url> <runnablename> <installer> 
+:CHECKANDINSTALLXAMPP <name> <intsallerfile> <installerpath> <url> <installer> <runnablename> 
 
 REM pause
-echo Detecting %5
-  if exist %5 (
-    echo %5 already installed
+echo Detecting %6
+  if exist %6 (
+    echo %6 already installed
     call :XAMPPSERVICESSTART
-  ) else ( echo   Installing %5
-    if "%6" == "" (
+  ) else ( echo   Installing %6
+    if "%3%2" == "" (
 
       CALL :GETINSTALLER %1 %2 %3 %4 false
       CALL :RUNINSTALLER %1 %2 %3 false
     ) else (
 
       CALL :GETINSTALLER %1 %2 %3 %4 false
-      CALL : %1 %2 %3 %6 false
+      CALL :%5 %3%2 %1 false
     ) 
   )
 exit /b
