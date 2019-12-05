@@ -357,9 +357,9 @@ if "%step[UACSTEPS]%"=="false" (
             set check=true
             echo =========inside java
       )
-
+    
       echo ---------------------------filteredpath-------------
- 
+
 
       For %%M in ("!path:;=" "!") do Set "machine[%%M]=%%M"
         
@@ -384,9 +384,9 @@ echo ---------------------     filtered      ------------------------------
     
         REM pause
 
-        where git > %root%\gitst.txt
-        echo %root%\gitst.txt
-        set /p str=<%root%\gitst.txt
+        where git > !instanceRoot!\tmp\gitst.txt
+        echo !instanceRoot!\tmp\gitst.txt
+        set /p str=<!instanceRoot!\tmp\gitst.txt
         set str=!str:~0,-11!
         pause
       
@@ -421,6 +421,7 @@ exit /b
     echo   %instancename%
     echo     to location %instanceRoot%
     cd %root%
+    REM cd!instanceRoot!\tmp
 
 
     REM Add nodejs to System Path.
@@ -480,8 +481,23 @@ exit /b
           start /w cmd /b /c npm install -g ember-cli
         ) 
 
+
+
+    
+      pause
       cd %instanceRoot%\qms
-      git checkout genericMRwip --force
+      git status -s>>!instanceRoot!\tmp\git_status.txt
+      set "git_status_check=!instanceRoot!\tmp\git_status.txt"
+      pause
+      for %%A in (!git_status_check!) do if %%~zA==0 (
+        echo."%%A" is empty
+        git checkout genericMRwip --force
+      ) else (
+        echo "git checkout genericMRwip --force not possible because some changes found >>>>>>>>>>>"       
+      )
+
+      REM cd %instanceRoot%\qms
+      REM git checkout genericMRwip --force
       REM npm rebuild node-sass
       
       if "!step[PROJECTNPMINSTALL]!"=="false" (
@@ -568,13 +584,11 @@ exit /b
     echo del /s /q  %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
   
     echo del /s /q %instanceRoot%\server\common\schemaBuilderSource\*.*>>%instanceRoot%\tmp\mysql.bat
-    
+    echo exit>>%instanceRoot%\tmp\mysql.bat
     REM del /s /q "%instanceRoot%\server\common\schemaBuilderSource\*.*"
     REM start /wait cmd /b /c %instanceRoot%\tmp\mysql.bat
     cmd /C start /wait  %instanceRoot%\tmp\mysql.bat
-   
-    
-    pause
+ 
     REM PB : TODO -- Remove TEMP HACK to get the schema created.
     REM echo del %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
     REM echo rm  %instanceRoot%\server\common\schemaBuilderSource\*>>%instanceRoot%\tmp\mysql.bat
@@ -715,8 +729,7 @@ REM <url> <File> <name> <notinstalled>
      
 REM :CHECKANDINSTALLXAMPP <runnablename> <name> <url> <DownloadedFile> <installer>
 :CHECKANDINSTALLXAMPP <name> <intsallerfile> <installerpath> <url> <installer> <runnablename> 
-
-REM pause
+pause
 echo Detecting %6
   if exist %6 (
     echo %6 already installed
