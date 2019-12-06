@@ -42,9 +42,13 @@ if ""=="%1" (
     set instanceRoot=%root%\instances\!str!
     set instancename=!str!
   ) else (
-    set instancename=elixir_01
-  )
+      
+      set instancename=elixir_01
+      set instanceRoot=%root%\instances\!instancename!
+   
     
+  )
+
 
 ) else ( set instancename=%1
          
@@ -53,13 +57,15 @@ if ""=="%1" (
   echo %1>%root%\instancename1.txt
 
 )
-
+  pause 
+  echo ">>>>>>><<<<<<>>>>>>>>><<<<<<<"%instancename%\test 
+  echo !instancename!\test
 
 echo "instanceroot >>>>>>>>>>" %instanceRoot%
 
 mkdir %instanceRoot%
 mkdir %instanceRoot%\tmp
-echo instanceRoot=%instanceRoot%
+echo instanceRoot=!instanceRoot!
 echo root=%root%
 pause
 
@@ -78,7 +84,7 @@ path
 echo !instanceRoot!\config.bat
 pause
 
-if exist %instanceRoot%\config.bat (
+if exist !instanceRoot!\config.bat (
   echo Loading configuration
   CALL %instanceRoot%\config.bat
 ) else (
@@ -359,6 +365,7 @@ if "%step[UACSTEPS]%"=="false" (
       
           pause
           echo "!str!git-bash" -c "./setup/install.bat !instancename!"
+          pause
           call "!str!git-bash" -c "./setup/install.bat !instancename!"
           REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
@@ -415,6 +422,7 @@ echo ---------------------     filtered      ------------------------------
         pause
       
         echo "!str!git-bash" -c "./setup/install.bat !instancename!"
+        pause
         call "!str!git-bash" -c "./setup/install.bat !instancename!"
         pause
         REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
