@@ -30,17 +30,49 @@ if "%PWD%"=="" (
 )
   
 set fastinstall=false
+  
+    
+if ""=="%1" ( 
+ 
+  if exist "%root%\instancename1.txt" (
 
-if ""=="%1" ( set instancename=elixir_01
-  ) else ( set instancename=%1
+    set /p str=<%root%\instancename1.txt
+    echo ">>>>>>>>>>>>>>>>" !str!
+    echo "<<<<<<<<<<<<<<<<<<<<<<" %str%
+    set instanceRoot=%root%\instances\!str!
+    set instancename=!str!
+  ) else (
+      
+    set instancename=elixir_01
+    set instanceRoot=%root%\instances\!instancename!
+
   )
 
+
+) else ( set instancename=%1
+         
+  echo "++++++++++++++>" %1
+  set instanceRoot=%root%\instances\%1
+  echo %1>%root%\instancename1.txt
+
+)
+
+pause 
+echo ">>>>>>><<<<<<>>>>>>>>><<<<<<<"%instancename%\test 
+echo !instancename!\test
+
+echo "instanceroot >>>>>>>>>>" %instanceRoot%
 set instanceRoot=%root%\instances\%instancename%
 echo root=!root!
 echo instanceRoot=%instanceRoot%
 
 mkdir %instanceRoot%
 mkdir %instanceRoot%\tmp
+mkdir %instanceRoot%
+mkdir %instanceRoot%\tmp
+echo instanceRoot=!instanceRoot!
+echo root=%root%
+pause
 
 
 
@@ -54,9 +86,10 @@ echo -------------- altered ----------------------
 set PATH=!PATH!;!relaunchPath!
 REM path
 
+echo !instanceRoot!\config.bat
+pause
 
-
-if exist %instanceRoot%\config.bat (
+if exist !instanceRoot!\config.bat (
   echo Loading configuration
   CALL %instanceRoot%\config.bat
 ) else (
@@ -344,8 +377,9 @@ if "%step[UACSTEPS]%"=="false" (
           echo !str!
 
           pause
-          echo "!str!git-bash" -c "./setup/install.bat"
-          call "!str!git-bash" -c "./setup/install.bat"
+          echo "!str!git-bash" -c "./setup/install.bat !instancename!"
+          pause
+          call "!str!git-bash" -c "./setup/install.bat !instancename!"
           REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           del %instanceRoot%\tmp\gitbashrun.log.bat
@@ -400,8 +434,9 @@ if "%step[UACSTEPS]%"=="false" (
         set str=!str:~0,-11!
         pause
       
-        echo "!str!git-bash" -c "./setup/install.bat"
-        call "!str!git-bash" -c "./setup/install.bat"
+        echo "!str!git-bash" -c "./setup/install.bat !instancename!"
+        pause
+        call "!str!git-bash" -c "./setup/install.bat !instancename!"
         pause
         REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
