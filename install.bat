@@ -13,18 +13,18 @@ set isGitBash=false
 REM call :checkIsGitBash
 REM echo Gitbash=%isGitBash%
 
+set root=
 set relaunchPath=%PATH%
-
+set mypath=!cd!
+set root=!mypath!
+set thisBatchLaunchPath=%~dp0
+echo thisBatchLaunchPath = !thisBatchLaunchPath!  
 if "%PWD%"=="" (
   :: Windows doesnt have the PWD env variable.
-  set thisBatchLaunchPath=%~dp0
-  set mypath=!cd!
-  set root=!mypath!
-  echo root=!root!
+  echo Detected Running in windows cmd shell.  
 ) else (
-  set isGitBash=true
-  echo root=!root!
-  echo instanceRoot=!instanceRoot!
+  set isGitBash=true  
+  echo Detected Running in bash shell.  
   echo bash shell env should already be preset...
   REM pause
 )
@@ -34,23 +34,25 @@ set fastinstall=false
 if ""=="%1" ( set instancename=elixir_01
   ) else ( set instancename=%1
   )
+
 set instanceRoot=%root%\instances\%instancename%
+echo root=!root!
+echo instanceRoot=%instanceRoot%
+
 mkdir %instanceRoot%
 mkdir %instanceRoot%\tmp
-echo instanceRoot = %instanceRoot%
-echo root = %root%
 
 
 
 
-echo %relaunchPath%
+REM echo %relaunchPath%
 echo -------------- existing ----------------------
 REM type %instanceRoot%\tmp\collectpath.bat
 call %instanceRoot%\tmp\collectpath.bat
-echo !relaunchPath!
+REM echo !relaunchPath!
 echo -------------- altered ----------------------
 set PATH=!PATH!;!relaunchPath!
-path
+REM path
 
 
 
@@ -190,7 +192,7 @@ if "%step[PREREQS]%"=="true" (
   REM set xamppinstllpath=%root%\runtime\xampp
   if exist "%xamppinstllpath%" (
       echo   %xamppinstllpath%
-      echo     Already exists
+      echo    %xamppinstllpath% Already exists
   ) else ( MKDIR %xamppinstllpath%
       echo     Folder Created
   )
@@ -252,6 +254,10 @@ if "%step[UACSTEPS]%"=="false" (
     REM call :CHECKANDINSTALL python https://www.python.org/ftp/python/3.6.5/python-3.6.5-amd64.exe %mypath%\Downloads\python-3.6.5-amd64.exe
     call :CHECKANDINSTALL python python-2.7.16.amd64.msi %mypath%\Downloads\ https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi RUNMSIINSTALLER
     REM :SETUACSTEPS true
+    REM call :CHECKANDINSTALL python python-2.7.16.amd64.msi %mypath%\Downloads\ https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi RUNMSIINSTALLER
+      
+     call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe
+    
     set step[UACSTEPS]=true
     echo set step[UACSTEPS]=true>>%instanceRoot%\tmp\run.log.bat
 
@@ -279,6 +285,7 @@ if "%step[UACSTEPS]%"=="false" (
   
   if "!step[UACSTEPS]!"=="true" (
 
+    pause
     call git config --global --add user.name "%gitUser%"
     call git config --global --add user.email "%gitUser%"
 
@@ -304,7 +311,8 @@ if "%step[UACSTEPS]%"=="false" (
       echo xamppinstllpath %xamppinstllpath%
        REM   <runnablename> <name> <url> <DownloadedFile> <installer>
        REM  <name> <intsallerfile> <installerpath> <url> <installer> <runnablename>
-      call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe 
+      pause
+      REM call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe 
       call :EXECQUEUEDFORRUNASADMINISTRATOR
        REM   <name> <url> <DownloadedFile> <installer>   
        REM  <name> <intsallerfile> <installerpath> <url> <installer> <version>
@@ -329,10 +337,12 @@ if "%step[UACSTEPS]%"=="false" (
         ) else ( REM Switch to a git bash shell to continue
           cd %instanceRoot%
           echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
+          
           set /p str=<%root%\gitst.txt
           set str=!str:~0,-11!
           
-      
+          echo !str!
+
           pause
           echo "!str!git-bash" -c "./setup/install.bat"
           call "!str!git-bash" -c "./setup/install.bat"
@@ -369,11 +379,11 @@ if "%step[UACSTEPS]%"=="false" (
 
       if "!check!"=="true" (
       
-        set path=!path!;!cachedpath!;!filteredpath:~1!;
-        setx path "!path!;!cachedpath!;!filteredpath:~1!"
+        set path=!cachedpath!;!filteredpath:~1!;
+        setx path "!cachedpath!;!filteredpath:~1!"
        
       )
-echo ---------------------     filtered      ------------------------------
+      echo ---------------------     filtered      ------------------------------
       echo !path!
      
       echo =============after python java chk
@@ -485,7 +495,9 @@ exit /b
 
     
       pause
-      cd %instanceRoot%\qms
+      echo  !instanceRoot!\qms
+      cd !instanceRoot!\qms
+      pwd
       git status -s>>!instanceRoot!\tmp\git_status.txt
       set "git_status_check=!instanceRoot!\tmp\git_status.txt"
       pause
@@ -900,7 +912,9 @@ exit /b
 
 :QUEUESTARTAPACHE
     CALL :QUEUEFORRUNASADMINISTRATOR echo Starting Apache Service
-    CALL :QUEUEFORRUNASADMINISTRATOR cd %xamppinstllpath%\apache    
+    CALL :QUEUEFORRUNASADMINISTRATOR cd %xamppinstllpath%\apache 
+
+    pause   
     CALL :QUEUEFORRUNASADMINISTRATOR CALL %xamppinstllpath%\apache\apache_installservice.bat
 exit /b
 
