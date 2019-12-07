@@ -13,7 +13,6 @@ set isGitBash=false
 REM call :checkIsGitBash
 REM echo Gitbash=%isGitBash%
 
-
 set root=
 set relaunchPath=%PATH%
 set mypath=!cd!
@@ -29,7 +28,6 @@ if "%PWD%"=="" (
   echo bash shell env should already be preset...
   REM pause
 )
-echo UAC STATUS !step[UACSTEPS]!
   
 set fastinstall=false
   
@@ -58,7 +56,6 @@ if ""=="%1" (
   echo %1>%root%\instancename1.txt
 
 )
-
 
 pause 
 echo ">>>>>>><<<<<<>>>>>>>>><<<<<<<"%instancename%\test 
@@ -258,7 +255,6 @@ if "!step[UACSTEPS]!"=="false" (
 
     pause
     echo UAC Steps completed.
-    pause
 
     CALL :INITFORRUNASADMINISTRATOR
     echo echo set relaunchPath=%%path%%^>%instanceRoot%\tmp\collectpath.bat>>%instanceRoot%\tmp\runasadmin.bat
@@ -413,15 +409,12 @@ if "!step[UACSTEPS]!"=="false" (
             set check=true
             echo =========inside java
       )
-    
-      where git
-      pause
 
       echo ---------------------------currentpath-------------
-      echo !path!
+      REM echo !path!
       set path=!cachedpath!;!path!
       echo -----------------with cachedpath-----------------------
-      echo !path!
+      REM echo !path!
       REM set /a i=-1
       For %%M in ("!path:;=";"!") do (
         REM   set /a i=!i!+1
@@ -458,10 +451,7 @@ if "!step[UACSTEPS]!"=="false" (
         set step[RELAUNCHWITHENV]=true
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
         cd %instanceRoot%
-    
-        pause
-        echo where git > !instanceRoot!\tmp\gitst.txt
-        pause
+
         where git > !instanceRoot!\tmp\gitst.txt
         echo !instanceRoot!\tmp\gitst.txt
         set /p str=<!instanceRoot!\tmp\gitst.txt
