@@ -13,6 +13,7 @@ set isGitBash=false
 REM call :checkIsGitBash
 REM echo Gitbash=%isGitBash%
 
+
 set root=
 set relaunchPath=%PATH%
 set mypath=!cd!
@@ -28,6 +29,7 @@ if "%PWD%"=="" (
   echo bash shell env should already be preset...
   REM pause
 )
+echo UAC STATUS !step[UACSTEPS]!
   
 set fastinstall=false
   
@@ -56,6 +58,7 @@ if ""=="%1" (
   echo %1>%root%\instancename1.txt
 
 )
+
 
 pause 
 echo ">>>>>>><<<<<<>>>>>>>>><<<<<<<"%instancename%\test 
@@ -245,7 +248,7 @@ if "%step[PREREQS]%"=="true" (
   REM    call :CHECKANDINSTALL  %%a 
   REM ))
 
-if "%step[UACSTEPS]%"=="false" (
+if "!step[UACSTEPS]!"=="false" (
     CALL :INITFORRUNASADMINISTRATOR
     CALL :QUEUEFORRUNASADMINISTRATOR cd %root%
     set step[UACSTEPS]=start
@@ -253,6 +256,7 @@ if "%step[UACSTEPS]%"=="false" (
     CALL :QUEUEFORRUNASADMINISTRATOR cmd /b /c %thisBatchLaunchPath%install.bat
     call :EXECQUEUEDFORRUNASADMINISTRATOR
 
+    pause
     echo UAC Steps completed.
     pause
 
@@ -270,9 +274,17 @@ if "%step[UACSTEPS]%"=="false" (
 
   )
 
-  echo %step[UACSTEPS]%
+  echo UAC STATUS !step[UACSTEPS]!
   pause
-  if "%step[UACSTEPS]%"=="start" (
+  if exist %runfile% (
+    echo Loading Runtime State
+    CALL %runfile%
+  ) else (
+    echo No Previous Run detected.
+  )
+  echo UAC STATUS !step[UACSTEPS]!
+  pause
+  if "!step[UACSTEPS]!"=="start" (
     :: We r now in a new UAC SHELL where we can do UAC steps.
     REM  <name> <intsallerfile> <installerpath> <url> <installer>
     
@@ -289,13 +301,13 @@ if "%step[UACSTEPS]%"=="false" (
     REM :SETUACSTEPS true
     REM call :CHECKANDINSTALL python python-2.7.16.amd64.msi %mypath%\Downloads\ https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi RUNMSIINSTALLER
       
-     call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe
+    call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER !xamppinstllpath!\xampp-control.exe
     
     set step[UACSTEPS]=true
     echo set step[UACSTEPS]=true>>%instanceRoot%\tmp\run.log.bat
 
     
-    echo step[UACSTEPS] : %step[UACSTEPS]%
+    echo step[UACSTEPS] : !step[UACSTEPS]!
     echo step[RELAUNCHWITHENV] : %step[RELAUNCHWITHENV]%
     pause
 
@@ -387,7 +399,7 @@ if "%step[UACSTEPS]%"=="false" (
       )
     ) else ( 
       set check=false
-      set cachedpath=""
+      set cachedpath=
       call :CHECKRUNNABLE python 
       if "!existcheck!"=="false" (
             set cachedpath="C:\python27;"
@@ -402,21 +414,42 @@ if "%step[UACSTEPS]%"=="false" (
             echo =========inside java
       )
     
-      echo ---------------------------filteredpath-------------
+      where git
+      pause
 
-
-      For %%M in ("!path:;=" "!") do Set "machine[%%M]=%%M"
-        
-      Set filteredpath=
-      For /f "tokens=2 delims==" %%M in ('Set machine[') do Set "filteredpath=!filteredpath!;%%~M"
-
-
-      if "!check!"=="true" (
-      
-        set path=!cachedpath!;!filteredpath:~1!;
-        setx path "!cachedpath!;!filteredpath:~1!"
-       
+      echo ---------------------------currentpath-------------
+      echo !path!
+      set path=!cachedpath!;!path!
+      echo -----------------with cachedpath-----------------------
+      echo !path!
+      REM set /a i=-1
+      For %%M in ("!path:;=";"!") do (
+        REM   set /a i=!i!+1
+        set arr[%%~M]=%%~M
+        echo arr[%%~M] 
       )
+
+      REM For /L %%x in (0 1 !i!) do ( 
+      REM   echo !arr[%%x]!
+      REM )
+      Set filteredpath=
+      For /f "tokens=2 delims==" %%M in ('Set arr[') do (
+          REM echo --%%~M--
+          Set "filteredpath=!filteredpath!;%%~M"
+          REM echo FFFFFFFF!filteredpath!
+      )
+      echo -----------------filtered-----------------------
+      echo !filteredpath!
+      set path=!filteredpath!;
+
+      REM if "!check!"=="true" (      
+        set path=!filteredpath!;
+        setx path "!filteredpath!"
+      REM )
+      where git
+      pause
+
+      
       echo ---------------------     filtered      ------------------------------
       echo !path!
      
@@ -426,8 +459,9 @@ if "%step[UACSTEPS]%"=="false" (
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
         cd %instanceRoot%
     
-        REM pause
-
+        pause
+        echo where git > !instanceRoot!\tmp\gitst.txt
+        pause
         where git > !instanceRoot!\tmp\gitst.txt
         echo !instanceRoot!\tmp\gitst.txt
         set /p str=<!instanceRoot!\tmp\gitst.txt
