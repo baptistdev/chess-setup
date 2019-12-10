@@ -226,7 +226,7 @@ if "%step[PREREQS]%"=="true" (
   pause
   REM PB :TODO -- We still need to check if we are in bash before running the BASHSTEPS.
 
-  echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+  REM echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
   echo ------------before bashsteps-------------
   pause
   
@@ -344,8 +344,8 @@ if "!step[UACSTEPS]!"=="false" (
     call git config --global --add user.email "%gitUser%"
 
     echo %localREPO%\
-    echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
-    Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd% 
+    REM echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+    REM Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd% 
     REM net use \\172.16.0.27\repos /user:bbh\baptist 2018Bbh
     pause
     CALL :GITCLONE %localREPO%/repos %instanceRoot% setup
@@ -524,15 +524,15 @@ exit /b
 
     REM call git config http.sslVerify false
 
-    echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
+    REM echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
     pause
     if "true"=="%fastinstall%" (
       echo fastinstall : %fastinstall%
       echo ------------------fAST INSTALL----------------
       pause
     ) else (
-      echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
-      Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
+      REM echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
+      REM Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
       
 
      
