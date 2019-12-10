@@ -20,7 +20,6 @@ if "!step[RELAUNCHWITHENV]!"=="true" (
 )
 set mypath=!cd!
 set root=!mypath!
-
 set thisBatchLaunchPath=%~dp0
 echo thisBatchLaunchPath = !thisBatchLaunchPath!  
 if "%PWD%"=="" (
@@ -163,6 +162,11 @@ if exist !instanceRoot!\config.bat (
   @echo set instancename=!instancename!>>%instanceRoot%\config.bat
 
 )
+
+echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+pause
+  
 REM REM copy softwares from local repo only if local repo exist
 REM call :CHECKLOCALGITREPO
 REM :CHECKLOCALGITREPO
@@ -342,7 +346,7 @@ if "!step[UACSTEPS]!"=="false" (
     echo %localREPO%\
     echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
     Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd% 
-
+    REM net use \\172.16.0.27\repos /user:bbh\baptist 2018Bbh
     pause
     CALL :GITCLONE %localREPO%/repos %instanceRoot% setup
 
@@ -381,8 +385,8 @@ if "!step[UACSTEPS]!"=="false" (
       echo %instanceRoot%\tmp\gitbashrun.log.bat
       REM echo %CD%
       echo ----------------------before gitbashrun check ------------
-      REM echo %instanceRoot% 
-      REM echo !instanceRoot!
+      echo %instanceRoot% 
+      echo !instanceRoot!
       pause
       if exist "%instanceRoot%\tmp\gitbashrun.log.bat" (
         echo git-bash process already launched
@@ -410,7 +414,8 @@ if "!step[UACSTEPS]!"=="false" (
           REM echo "!str!git-bash" -c "./setup/install.bat !instancename!"
           REM pause
           REM call "!str!git-bash" -c "./setup/install.bat !instancename!"
-          
+          REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+          REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
           del %instanceRoot%\tmp\gitbashrun.log.bat
         )
       )
@@ -519,7 +524,8 @@ exit /b
 
     REM call git config http.sslVerify false
 
-       pause
+    echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
+    pause
     if "true"=="%fastinstall%" (
       echo fastinstall : %fastinstall%
       echo ------------------fAST INSTALL----------------
