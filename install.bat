@@ -309,9 +309,7 @@ if "!step[UACSTEPS]!"=="false" (
     call :CHECKANDINSTALL python python-2.7.16.amd64.msi %mypath%\Downloads\ https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi RUNMSIINSTALLER
     REM :SETUACSTEPS true
     REM call :CHECKANDINSTALL python python-2.7.16.amd64.msi %mypath%\Downloads\ https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi RUNMSIINSTALLER
-      
-    call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER !xamppinstllpath!\xampp-control.exe
-    
+       
     set step[UACSTEPS]=true
     echo set step[UACSTEPS]=true>>%instanceRoot%\tmp\run.log.bat
 
@@ -366,7 +364,7 @@ if "!step[UACSTEPS]!"=="false" (
       REM   <runnablename> <name> <url> <DownloadedFile> <installer>
       REM  <name> <intsallerfile> <installerpath> <url> <installer> <runnablename>
       pause
-      REM call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe 
+      call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER !xamppinstllpath!\xampp-control.exe
       call :EXECQUEUEDFORRUNASADMINISTRATOR
       REM   <name> <url> <DownloadedFile> <installer>   
       REM  <name> <intsallerfile> <installerpath> <url> <installer> <version>
@@ -828,7 +826,6 @@ exit /b
 exit /b
 REM <url> <File> <name> <notinstalled>
      
-REM :CHECKANDINSTALLXAMPP <runnablename> <name> <url> <DownloadedFile> <installer>
 :CHECKANDINSTALLXAMPP <name> <intsallerfile> <installerpath> <url> <installer> <runnablename> 
 pause
 echo Detecting %6
@@ -836,15 +833,15 @@ echo Detecting %6
     echo %6 already installed
     call :XAMPPSERVICESSTART
   ) else ( echo   Installing %6
-    if "%3%2" == "" (
+    if exist "%3%2" (
 
-      CALL :GETINSTALLER %1 %2 %3 %4 false
-      CALL :RUNINSTALLER %1 %2 %3 false
+      echo using peviously downloaded installer
     ) else (
 
       CALL :GETINSTALLER %1 %2 %3 %4 false
-      CALL :%5 %3%2 %1 false
+    
     ) 
+     CALL :%5 %3%2 %1 false
   )
 exit /b
 
@@ -1001,16 +998,19 @@ exit /b
 
 :QUEUESTARTAPACHE
     CALL :QUEUEFORRUNASADMINISTRATOR echo Starting Apache Service
-    CALL :QUEUEFORRUNASADMINISTRATOR cd %xamppinstllpath%\apache 
-
-    pause   
+    CALL :QUEUEFORRUNASADMINISTRATOR c: 
+    CALL :QUEUEFORRUNASADMINISTRATOR cd /D %xamppinstllpath%\apache 
     CALL :QUEUEFORRUNASADMINISTRATOR CALL %xamppinstllpath%\apache\apache_installservice.bat
+    CALL :QUEUEFORRUNASADMINISTRATOR cd /D !root!
+ 
 exit /b
 
 :QUEUESTARTMYSQL
     CALL :QUEUEFORRUNASADMINISTRATOR echo Starting Mysql Service
-    CALL :QUEUEFORRUNASADMINISTRATOR cd %xamppinstllpath%\mysql
+    CALL :QUEUEFORRUNASADMINISTRATOR c: 
+    CALL :QUEUEFORRUNASADMINISTRATOR cd /D %xamppinstllpath%\mysql
     CALL :QUEUEFORRUNASADMINISTRATOR CALL %xamppinstllpath%\mysql\mysql_installservice.bat
+    CALL :QUEUEFORRUNASADMINISTRATOR cd /D !root!
 exit /b
 
 
