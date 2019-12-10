@@ -15,8 +15,12 @@ REM echo Gitbash=%isGitBash%
 
 set root=
 set relaunchPath=%PATH%
+if "!step[RELAUNCHWITHENV]!"=="true" (
+  cd ..\..\ 
+)
 set mypath=!cd!
 set root=!mypath!
+
 set thisBatchLaunchPath=%~dp0
 echo thisBatchLaunchPath = !thisBatchLaunchPath!  
 if "%PWD%"=="" (
@@ -217,6 +221,11 @@ if "%step[PREREQS]%"=="true" (
   echo Prerequistes install already completed.
   pause
   REM PB :TODO -- We still need to check if we are in bash before running the BASHSTEPS.
+
+  echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+  echo ------------before bashsteps-------------
+  pause
+  
   call :BASHSTEPS 
 
 ) else ( 
@@ -224,17 +233,17 @@ if "%step[PREREQS]%"=="true" (
 
   REM set xamppinstllpath=%root%\runtime\xampp
   if exist "%xamppinstllpath%" (
-      echo   %xamppinstllpath%
-      echo    %xamppinstllpath% Already exists
+    echo   %xamppinstllpath%
+    echo    %xamppinstllpath% Already exists
   ) else ( MKDIR %xamppinstllpath%
-      echo     Folder Created
+    echo     Folder Created
   )
   echo xamppinstllpath=%xamppinstllpath%
 
   echo Using Downloads Folder : 
   if exist %mypath%\Downloads (
-      echo   %mypath%\Downloads
-      echo     Already exists
+    echo   %mypath%\Downloads
+    echo     Already exists
   ) else ( MKDIR %mypath%\Downloads
     echo     Folder Created
   )
@@ -331,8 +340,8 @@ if "!step[UACSTEPS]!"=="false" (
     call git config --global --add user.email "%gitUser%"
 
     echo %localREPO%\
-    echo Net Use \\%localREPO%\repos ^/user^:%localREPOUNCUser% %localREPOUNCPwd%
-    Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+    echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+    Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd% 
 
     pause
     CALL :GITCLONE %localREPO%/repos %instanceRoot% setup
@@ -350,13 +359,13 @@ if "!step[UACSTEPS]!"=="false" (
           call :RUNSTEP INSTALLWINBUILDTOOLS
       )
       echo xamppinstllpath %xamppinstllpath%
-       REM   <runnablename> <name> <url> <DownloadedFile> <installer>
-       REM  <name> <intsallerfile> <installerpath> <url> <installer> <runnablename>
+      REM   <runnablename> <name> <url> <DownloadedFile> <installer>
+      REM  <name> <intsallerfile> <installerpath> <url> <installer> <runnablename>
       pause
       REM call :CHECKANDINSTALLXAMPP xampp xampp-windows-x64-7.3.5-1-VC15-installer.exe %mypath%\Downloads\ https://www.apachefriends.org/xampp-files/7.3.5/xampp-windows-x64-7.3.5-1-VC15-installer.exe XAMPPINSTALLER %xamppinstllpath%\xampp-control.exe 
       call :EXECQUEUEDFORRUNASADMINISTRATOR
-       REM   <name> <url> <DownloadedFile> <installer>   
-       REM  <name> <intsallerfile> <installerpath> <url> <installer> <version>
+      REM   <name> <url> <DownloadedFile> <installer>   
+      REM  <name> <intsallerfile> <installerpath> <url> <installer> <version>
 
       call :CHECKANDINSTALLJAVA java openjdk-13.0.1_windows-x64_bin.zip %mypath%\Downloads\ https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_windows-x64_bin.zip JAVAINSTALLER openjdk-13.0.1_windows-x64_bin  
       
@@ -369,27 +378,39 @@ if "!step[UACSTEPS]!"=="false" (
       echo set step[PREREQS]=true>>%instanceRoot%\tmp\run.log.bat
       
       echo checking gitbashrun
+      echo %instanceRoot%\tmp\gitbashrun.log.bat
+      REM echo %CD%
+      echo ----------------------before gitbashrun check ------------
+      REM echo %instanceRoot% 
+      REM echo !instanceRoot!
+      pause
       if exist "%instanceRoot%\tmp\gitbashrun.log.bat" (
         echo git-bash process already launched
       ) else (
+        echo ">>>>>>>>>>>>>>>>>>>>>>" else block
         pause
         if "true"=="%isGitBash%" (
+          echo ">>>>>>>>>>>>>>>>>>>>>>>" iSGITBASH TRUE
+          pause
           call :BASHSTEPS
         ) else ( REM Switch to a git bash shell to continue
+          echo ">>>>>>>>>>>>>>>>>>>>>>>" iSGITBASH FALSE
+          pause
           cd %instanceRoot%
           echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
           
-          set /p str=<%root%\gitst.txt
-          set str=!str:~0,-11!
+          REM set /p str=<%root%\gitst.txt
+          REM set str=!str:~0,-11!
           
-          echo !str!
+          REM echo !str!
 
           pause
-          echo "!str!git-bash" -c "./setup/install.bat !instancename!"
-          pause
-          call "!str!git-bash" -c "./setup/install.bat !instancename!"
-          REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
-          REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
+          echo call ./setup/install.bat !instancename!
+          call ./setup/install.bat !instancename!
+          REM echo "!str!git-bash" -c "./setup/install.bat !instancename!"
+          REM pause
+          REM call "!str!git-bash" -c "./setup/install.bat !instancename!"
+          
           del %instanceRoot%\tmp\gitbashrun.log.bat
         )
       )
@@ -498,12 +519,15 @@ exit /b
 
     REM call git config http.sslVerify false
 
-
+       pause
     if "true"=="%fastinstall%" (
       echo fastinstall : %fastinstall%
+      echo ------------------fAST INSTALL----------------
+      pause
     ) else (
-      Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
-
+      echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
+      Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
+      
 
      
 
@@ -734,7 +758,7 @@ REM Check if app is installed
   set existcheck=false
   echo Checkrunnable for %1
   for /f "delims=" %%i in ('where %1') do (
-    set existcheck=%%i
+  set existcheck=%%i
   )
   echo Is Runnable for %1 : !existcheck!
   
