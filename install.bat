@@ -13,14 +13,96 @@ set isGitBash=false
 REM call :checkIsGitBash
 REM echo Gitbash=%isGitBash%
 
+
 set root=
 set relaunchPath=%PATH%
 if "!step[RELAUNCHWITHENV]!"=="true" (
   cd ..\..\ 
+
 )
 set mypath=!cd!
 set root=!mypath!
 set thisBatchLaunchPath=%~dp0
+
+rem ----------------------------------
+!instanceRoot: =!
+echo %root%\instanceroot.txt
+
+set get_cd=!CD!
+echo get_cd !get_cd! ">>>>>>>>>>>>>>"
+
+echo instance root: !instanceRoot!
+
+if "!step[RELAUNCHWITHENV]!"=="true" (
+  CALL !instanceRoot: =!\config.bat
+
+)
+else (
+  if exist !get_cd!\instanceroot.txt (
+    echo ifblock -----------------
+    echo !get_cd!\instanceroot.txt
+    set /p instanceRoot=<!get_cd!\instanceroot.txt
+    REM set instanceRoot=!instanceRoot: =! 
+    
+    echo ">>>>>>>>>>" !instanceRoot: =!\config.bat
+
+    CALL !instanceRoot: =!\config.bat
+    REM del "!get_cd!\instanceroot.txt"
+  ) else (
+
+    echo Select a instance name:
+    echo =============
+      
+    set /p instancename="Type instancename Ex: elixir: "
+    REM if "%op%"=="4" goto op4
+    echo instancename : !instancename!
+
+    rem default instance name:chess/instances
+    if "!instancename!" == "" (
+      set instancename=elixir
+    )
+    echo instancename : !instancename! ">>>>>>>>>>>>"
+    
+    echo ---------------------------------------------------------
+    echo Select a instance type:
+    echo =============
+    echo -
+    echo 1. development-default  1
+    echo 2. test 2
+    echo 3. stage 3
+
+    echo -
+    CHOICE /C 123 /M "Enter your choice:"
+
+    IF ERRORLEVEL 3 GOTO option3
+    IF ERRORLEVEL 2 GOTO option2
+    IF ERRORLEVEL 1 GOTO option1 
+
+    :option1
+    set instancetype=dev
+    GOTO End
+    :option2
+    set instancetype=test
+    GOTO End
+    :option3
+    set instancetype=stage
+    GOTO End
+
+    :End
+    set instanceRoot=%root%\!instancename!\!instancetype! 
+    if not exist %root%\instanceroot.txt (
+    echo !instanceRoot!>%root%\instanceroot.txt
+  
+   )
+  )
+)
+  echo  instancetype : !instancetype! 
+
+  echo instancetype : !instancetype!  ">>>>>>>>>>>>"
+
+REM )
+echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+
 echo thisBatchLaunchPath = !thisBatchLaunchPath!  
 if "%PWD%"=="" (
   :: Windows doesnt have the PWD env variable.
@@ -34,56 +116,26 @@ if "%PWD%"=="" (
   
 set fastinstall=false
   
-    
-if ""=="%1" ( 
- 
-  if exist "%root%\instancename1.txt" (
 
-    set /p str=<%root%\instancename1.txt
-    echo ">>>>>>>>>>>>>>>>" !str!
-    echo "<<<<<<<<<<<<<<<<<<<<<<" %str%
-    set instanceRoot=%root%\instances\!str!
-    set instancename=!str!
-  ) else (
-      
-    set instancename=elixir_01
-    set instanceRoot=%root%\instances\!instancename!
+echo instanceRoot=!instanceRoot!
 
-  )
+mkdir !instanceRoot!
 
 
-) else ( set instancename=%1
-         
-  echo "++++++++++++++>" %1
-  set instanceRoot=%root%\instances\%1
-  echo %1>%root%\instancename1.txt
+mkdir !instanceRoot: =!\tmp
 
-)
-
-pause 
-echo ">>>>>>><<<<<<>>>>>>>>><<<<<<<"%instancename%\test 
-echo !instancename!\test
-
-echo "instanceroot >>>>>>>>>>" %instanceRoot%
-set instanceRoot=%root%\instances\%instancename%
-echo root=!root!
-echo instanceRoot=%instanceRoot%
-
-mkdir %instanceRoot%
-mkdir %instanceRoot%\tmp
-mkdir %instanceRoot%
-mkdir %instanceRoot%\tmp
+echo 
 echo instanceRoot=!instanceRoot!
 echo root=%root%
 pause
 
 
-
+set instanceRoot=!instanceRoot: =!
 
 REM echo %relaunchPath%
 echo -------------- existing ----------------------
-REM type %instanceRoot%\tmp\collectpath.bat
-call %instanceRoot%\tmp\collectpath.bat
+REM type !instanceRoot!\tmp\collectpath.bat
+call !instanceRoot!\tmp\collectpath.bat
 REM echo !relaunchPath!
 echo -------------- altered ----------------------
 set PATH=!PATH!;!relaunchPath!
@@ -94,7 +146,7 @@ pause
 
 if exist !instanceRoot!\config.bat (
   echo Loading configuration
-  CALL %instanceRoot%\config.bat
+  CALL !instanceRoot!\config.bat
 ) else (
   echo Configuration not found loading defaults.
   set localREPO=
@@ -138,33 +190,61 @@ if exist !instanceRoot!\config.bat (
     set /p remoteREPOHTTPSPwd="Remote Repository ( %remoteREPO% ) Pasword : "
   )
 
+REM   echo. --------------------please select instance type-----------------
+
+REM   echo 1.test
+REM   echo 2.master
+REM   REM echo 3.production
+
+REM  if ""=="%instancetype%" (
+REM     set /p instancetype="Type option: "
+REM   )
+REM   echo %instancetype%
+
+REM   REM set /p a="Enter your choice: "
+REM   REM if %a%==1 (
+REM   REM    set instancetype=test
+REM   REM )
+REM   REM if %a%==2 ( 
+REM   REM   set instancetype=development
+REM   REM )
+REM   REM if %a%==3 (
+REM   REM    set instancetype=production 
+REM   REM )
+
+
   echo Using Repositories : 
-  echo   Local  : %localREPO%
-  echo     User : %localREPOUNCUser% 
-  echo     Pwd  : %localREPOUNCPwd%
-  echo     Gituser: %gitUser% 
-  echo     Gitemail: %gitEmail% 
-  echo   Remote : %remoteREPO%
-  echo     User : %remoteREPOHTTPSUser% 
-  echo     Pwd  : %remoteREPOHTTPSPwd% 
+  echo     Local  : !localREPO!
+  echo     User : !localREPOUNCUser! 
+  echo     Pwd  : !localREPOUNCPwd!
+  echo     Gituser: !gitUser! 
+  echo     Gitemail: !gitEmail! 
+  echo     Remote : !remoteREPO!
+  echo     User : !remoteREPOHTTPSUser! 
+  echo     Pwd  : !remoteREPOHTTPSPwd! 
+  echo     Instancetype  : !instancetype! 
 
-  @echo set localREPO=!localREPO!>%instanceRoot%\config.bat
-  @echo     set localREPOUNCUser=!localREPOUNCUser!>>%instanceRoot%\config.bat
-  echo localREPOUNCUser = %instanceRoot%
-  @echo     set localREPOUNCPwd=!localREPOUNCPwd!>>%instanceRoot%\config.bat
-  @echo     set gitUser=!gitUser!>>%instanceRoot%\config.bat
-  @echo     set gitEmail=!gitEmail!>>%instanceRoot%\config.bat
+  REM echo -----------------------------
+  REM pause
 
-  @echo set remoteREPO=!remoteREPO!>>%instanceRoot%\config.bat
-  @echo     set remoteREPOHTTPSUser=!remoteREPOHTTPSUser!>>%instanceRoot%\config.bat
-  @echo     set remoteREPOHTTPSPwd=!remoteREPOHTTPSPwd!>>%instanceRoot%\config.bat
+  @echo set localREPO=!localREPO!>!instanceRoot!\config.bat
+  @echo     set localREPOUNCUser=!localREPOUNCUser!>>!instanceRoot!\config.bat
+  echo localREPOUNCUser = !instanceRoot!
+  @echo     set localREPOUNCPwd=!localREPOUNCPwd!>>!instanceRoot!\config.bat
+  @echo     set gitUser=!gitUser!>>!instanceRoot!\config.bat
+  @echo     set gitEmail=!gitEmail!>>!instanceRoot!\config.bat
 
-  @echo set instancename=!instancename!>>%instanceRoot%\config.bat
+  @echo set remoteREPO=!remoteREPO!>>!instanceRoot!\config.bat
+  @echo     set remoteREPOHTTPSUser=!remoteREPOHTTPSUser!>>!instanceRoot!\config.bat
+  @echo     set remoteREPOHTTPSPwd=!remoteREPOHTTPSPwd!>>!instanceRoot!\config.bat
+
+  @echo set instancename=!instancename!>>!instanceRoot!\config.bat
+  @echo set instancetype=!instancetype!>>!instanceRoot!\config.bat
 
 )
 
-echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
-Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
+echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
+Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
 pause
   
 REM REM copy softwares from local repo only if local repo exist
@@ -172,16 +252,16 @@ REM call :CHECKLOCALGITREPO
 REM :CHECKLOCALGITREPO
 REM echo gitcheck for %localREPO% .....
 REM if exist \\%localREPO%\repos\downloads (
-REM     REM echo  XCOPY \\%localREPO%\repos\downloads %instanceRoot%\Downloads /I /E /Y
+REM     REM echo  XCOPY \\%localREPO%\repos\downloads !instanceRoot!\Downloads /I /E /Y
 REM     echo %localREPO%\repos\downloads found
 REM     pause
-REM     XCOPY \\%localREPO%\repos\downloads %instanceRoot%\Downloads /I /E /Y
-REM     REM call :GITCLONE %localREPO%\repos\downloads %instanceRoot%\Downloads test
+REM     XCOPY \\%localREPO%\repos\downloads !instanceRoot!\Downloads /I /E /Y
+REM     REM call :GITCLONE %localREPO%\repos\downloads !instanceRoot!\Downloads test
 REM ) else (
 REM   echo localrepo : %localREPO%\repos\downloads not found )
 REM exit /b
 
-set runfile=%instanceRoot%\tmp\run.log.bat
+set runfile=!instanceRoot!\tmp\run.log.bat
 echo %runfile%
 REM xampp folder
 set xamppinstllpath=c:\xampp
@@ -223,7 +303,7 @@ set existcheck=false
 
 if "%step[PREREQS]%"=="true" (
   echo Prerequistes install already completed.
-  pause
+
   REM PB :TODO -- We still need to check if we are in bash before running the BASHSTEPS.
 
   REM echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
@@ -233,7 +313,7 @@ if "%step[PREREQS]%"=="true" (
   call :BASHSTEPS 
 
 ) else ( 
-  echo set step[STARTED]=true>>%instanceRoot%\tmp\run.log.bat
+  echo set step[STARTED]=true>>!instanceRoot!\tmp\run.log.bat
 
   REM set xamppinstllpath=%root%\runtime\xampp
   if exist "%xamppinstllpath%" (
@@ -262,7 +342,7 @@ if "!step[UACSTEPS]!"=="false" (
     CALL :INITFORRUNASADMINISTRATOR
     CALL :QUEUEFORRUNASADMINISTRATOR cd %root%
     set step[UACSTEPS]=start
-    echo set step[UACSTEPS]=start>>%instanceRoot%\tmp\run.log.bat
+    echo set step[UACSTEPS]=start>>!instanceRoot!\tmp\run.log.bat
     CALL :QUEUEFORRUNASADMINISTRATOR cmd /b /c %thisBatchLaunchPath%install.bat
     call :EXECQUEUEDFORRUNASADMINISTRATOR
 
@@ -270,9 +350,9 @@ if "!step[UACSTEPS]!"=="false" (
     echo UAC Steps completed.
 
     CALL :INITFORRUNASADMINISTRATOR
-    echo echo set relaunchPath=%%path%%^>%instanceRoot%\tmp\collectpath.bat>>%instanceRoot%\tmp\runasadmin.bat
-    echo echo pause>%instanceRoot%\tmp\collectpath.bat>>%instanceRoot%\tmp\runasadmin.bat
-    REM CALL :QUEUEFORRUNASADMINISTRATOR set path=%%path%%^>%%instanceRoot%%\tmp\collectpath.bat
+    echo echo set relaunchPath=%%path%%^>!instanceRoot!\tmp\collectpath.bat>>!instanceRoot!\tmp\runasadmin.bat
+    echo echo pause>!instanceRoot!\tmp\collectpath.bat>>!instanceRoot!\tmp\runasadmin.bat
+    REM CALL :QUEUEFORRUNASADMINISTRATOR set path=%%path%%^>%!instanceRoot!%\tmp\collectpath.bat
     CALL :QUEUEFORRUNASADMINISTRATOR path
     CALL :QUEUEFORRUNASADMINISTRATOR pause
     call :EXECQUEUEDFORRUNASADMINISTRATOR
@@ -311,7 +391,7 @@ if "!step[UACSTEPS]!"=="false" (
     REM call :CHECKANDINSTALL python python-2.7.16.amd64.msi %mypath%\Downloads\ https://www.python.org/ftp/python/2.7.16/python-2.7.16.amd64.msi RUNMSIINSTALLER
        
     set step[UACSTEPS]=true
-    echo set step[UACSTEPS]=true>>%instanceRoot%\tmp\run.log.bat
+    echo set step[UACSTEPS]=true>>!instanceRoot!\tmp\run.log.bat
 
     
     echo step[UACSTEPS] : !step[UACSTEPS]!
@@ -324,7 +404,7 @@ if "!step[UACSTEPS]!"=="false" (
 
   :: Need to reread on return
   CALL %runfile%
-  call %instanceRoot%\tmp\collectpath.bat
+  call !instanceRoot!\tmp\collectpath.bat
   echo !relaunchPath!
   echo -------------- altered ----------------------
   set PATH=!PATH!;!relaunchPath!
@@ -341,12 +421,13 @@ if "!step[UACSTEPS]!"=="false" (
     call git config --global --add user.name "%gitUser%"
     call git config --global --add user.email "%gitUser%"
 
-    echo %localREPO%\
+    echo !localREPO!\
     REM echo Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd%
     REM Net Use \\%localREPO%\repos /user:%localREPOUNCUser% %localREPOUNCPwd% 
     REM net use \\172.16.0.27\repos /user:bbh\baptist 2018Bbh
-    pause
-    CALL :GITCLONE %localREPO%/repos %instanceRoot% setup
+   
+    REM pause
+    CALL :GITCLONE %localREPO%/repos !instanceRoot! setup
 
     echo step[PREREQS]=%step[PREREQS]%
     if "!step[RELAUNCHWITHENV]!"=="true" (
@@ -377,44 +458,51 @@ if "!step[UACSTEPS]!"=="false" (
       echo PREREQS Install completed
 
       set step[PREREQS]=true
-      echo set step[PREREQS]=true>>%instanceRoot%\tmp\run.log.bat
+      echo set step[PREREQS]=true>>!instanceRoot!\tmp\run.log.bat
       
       echo checking gitbashrun
-      echo %instanceRoot%\tmp\gitbashrun.log.bat
+      echo !instanceRoot!\tmp\gitbashrun.log.bat
       REM echo %CD%
       echo ----------------------before gitbashrun check ------------
-      echo %instanceRoot% 
-      echo !instanceRoot!
+      echo !instanceRoot! 
+
+      echo !instanceRoot!\tmp\gitbashrun.log.bat
       pause
-      if exist "%instanceRoot%\tmp\gitbashrun.log.bat" (
+
+      if exist "!instanceRoot!\tmp\gitbashrun.log.bat" (
         echo git-bash process already launched
       ) else (
         echo ">>>>>>>>>>>>>>>>>>>>>>" else block
-        pause
+      
         if "true"=="%isGitBash%" (
           echo ">>>>>>>>>>>>>>>>>>>>>>>" iSGITBASH TRUE
-          pause
+     
           call :BASHSTEPS
         ) else ( REM Switch to a git bash shell to continue
           echo ">>>>>>>>>>>>>>>>>>>>>>>" iSGITBASH FALSE
-          pause
-          cd %instanceRoot%
-          echo started>>%instanceRoot%\tmp\gitbashrun.log.bat
+  
+          cd !instanceRoot!
+          echo started>>!instanceRoot!\tmp\gitbashrun.log.bat
           
+        
+
           REM set /p str=<%root%\gitst.txt
           REM set str=!str:~0,-11!
           
           REM echo !str!
 
-          pause
-          echo call ./setup/install.bat !instancename!
-          call ./setup/install.bat !instancename!
+      
+          REM REM cmd "!instanceRoot!/setup/install.bat !instancename!"
+          REM REM  ./setup/install.bat !instancename!
           REM echo "!str!git-bash" -c "./setup/install.bat !instancename!"
-          REM pause
-          REM call "!str!git-bash" -c "./setup/install.bat !instancename!"
-          REM echo "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
-          REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
-          del %instanceRoot%\tmp\gitbashrun.log.bat
+      
+          REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat !instancename!"
+          echo "!gitbashpath!" -c "./setup/install.bat"
+          pause
+          call "!gitbashpath!" -c "./setup/install.bat"
+
+          del !instanceRoot!\tmp\gitbashrun.log.bat
+   
         )
       )
     ) else ( 
@@ -458,10 +546,14 @@ if "!step[UACSTEPS]!"=="false" (
       echo -----------------filtered-----------------------
       echo !filteredpath!
       set path=!filteredpath!;
+      REM set addxtrachar=!filteredpath!\
+      REM set finalpath=!addxtrachar:~1,-1!
 
       REM if "!check!"=="true" (      
-        set path=!filteredpath!;
-        setx path "!filteredpath!"
+      
+      REM set path=!finalpath!;
+      setx path "!path!"
+      
       REM )
       where git
       pause
@@ -474,17 +566,16 @@ if "!step[UACSTEPS]!"=="false" (
        :: Preset paths that dont get set automatically. And are not available until relaunch.
         set step[RELAUNCHWITHENV]=true
         echo set step[RELAUNCHWITHENV]=true>>%runfile%
-        cd %instanceRoot%
+        cd !instanceRoot!
 
-        where git > !instanceRoot!\tmp\gitst.txt
-        echo !instanceRoot!\tmp\gitst.txt
-        set /p str=<!instanceRoot!\tmp\gitst.txt
-        set str=!str:~0,-11!
+
+        where git > !instanceRoot!\setup\gitbashpath.txt
+        set /p gitpath=<!instanceRoot!\setup\gitbashpath.txt
+        set gitbashpath=!gitpath:~0,-12!\git-bash
+
+        echo "!gitbashpath!" -c "./setup/install.bat !instancename!"
         pause
-      
-        echo "!str!git-bash" -c "./setup/install.bat !instancename!"
-        pause
-        call "!str!git-bash" -c "./setup/install.bat !instancename!"
+        call "!gitbashpath!" -c "./setup/install.bat !instancename!"
         pause
         REM call "C:\Program Files\Git\git-bash" -c "./setup/install.bat"
 
@@ -512,7 +603,7 @@ exit /b
     call :TITLE " Installing BBH Elixir Instance %instancename%"
     echo -----------------------------------------------------
     echo   %instancename%
-    echo     to location %instanceRoot%
+    echo    to location !instanceRoot!
     cd %root%
     REM cd!instanceRoot!\tmp
 
@@ -523,12 +614,16 @@ exit /b
     REM call git config http.sslVerify false
 
     REM echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
+    echo fastinstall = !fastinstall!
     pause
-    if "true"=="%fastinstall%" (
-      echo fastinstall : %fastinstall%
+    if "true"=="!fastinstall!" (
+      echo if block---------------- ------
+      REM echo fastinstall : !fastinstall!
       echo ------------------fAST INSTALL----------------
       pause
     ) else (
+
+      REM echo else block---------------- -----------
       REM echo Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
       REM Net Use \\!localREPO!\repos /user:!localREPOUNCUser! !localREPOUNCPwd!
       
@@ -537,6 +632,7 @@ exit /b
 
       if "!step[REPOSCLONED]!"=="false" (
         (for %%a in (
+
           ember-masonry-grid
           bbhverse
           server
@@ -546,12 +642,25 @@ exit /b
           config
           loopback-connector-ds
         ) do ( 
-          CALL :GITCLONE %localREPO%/repos %instanceRoot% %%a
+         CALL :GITCLONE %localREPO%/repos %instanceRoot% %%a
+          echo  cd  !instanceRoot!/%%a
+          cd  !instanceRoot!/%%a
+
+         if !instancetype! == "dev" (
+
+           git checkout master --f
+         ) else (
+          
+           git checkout !instancetype! --f
+         )
+  
         ))
         echo set step[REPOSCLONED]=true>>%runfile%
+       
       ) else (
 
         echo Repositories Already CLoned.
+       
 
         REM PB : TODO - pull repositories.
       )
@@ -582,20 +691,20 @@ exit /b
 
     
       pause
-      echo  !instanceRoot!\qms
-      cd !instanceRoot!\qms
-      pwd
-      git status -s>>!instanceRoot!\tmp\git_status.txt
-      set "git_status_check=!instanceRoot!\tmp\git_status.txt"
-      pause
-      for %%A in (!git_status_check!) do if %%~zA==0 (
-        echo."%%A" is empty
-        git checkout genericMRwip --force
-      ) else (
-        echo "git checkout genericMRwip --force not possible because some changes found >>>>>>>>>>>"       
-      )
+      REM echo  !instanceRoot!\qms
+      REM cd !instanceRoot!\qms
+      REM pwd
+      REM git status -s>>!instanceRoot!\tmp\git_status.txt
+      REM set "git_status_check=!instanceRoot!\tmp\git_status.txt"
+      REM pause
+      REM for %%A in (!git_status_check!) do if %%~zA==0 (
+      REM   echo."%%A" is empty
+      REM   git checkout genericMRwip --force
+      REM ) else (
+      REM   echo "git checkout genericMRwip --force not possible because some changes found >>>>>>>>>>>"       
+      REM )
 
-      REM cd %instanceRoot%\qms
+      REM cd !instanceRoot!\qms
       REM git checkout genericMRwip --force
       REM npm rebuild node-sass
       
@@ -605,10 +714,11 @@ exit /b
           server
           qms
           qms/server
+ 
         ) do ( 
-          del %instanceRoot%\%%a\package-lock.json
+          del !instanceRoot!\%%a\package-lock.json
           echo npm install FOR %%a
-          cd %instanceRoot%\%%a
+          cd !instanceRoot!\%%a
           echo %pwd%
           call npm install   
         )
@@ -621,17 +731,18 @@ exit /b
       for %%a in (
         qms
       ) do ( 
-        cd %instanceRoot%\%%a
+        cd !instanceRoot!\%%a
         echo %pwd%
         echo Calling Bower install FOR %%a
         call "./node_modules/.bin/bower" install
         
       )
 
+      del "!root!\instanceroot.txt"
       echo " copying roboto"
       REM pause
-      mkdir %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
-      xcopy \\%localREPO%\repos\roboto %instanceRoot%\qms\bower_components\materialize\dist\fonts\roboto
+      mkdir !instanceRoot!\qms\bower_components\materialize\dist\fonts\roboto
+      xcopy \\%localREPO%\repos\roboto !instanceRoot!\qms\bower_components\materialize\dist\fonts\roboto
     )
 
 
@@ -655,46 +766,46 @@ exit /b
 
 :INITDBANDSCHEMA
   if "!step[DBSCHEMA]!"=="false" (
-   MKDIR %instanceRoot%\qms\data\filestore
+   MKDIR !instanceRoot!\qms\data\filestore
     echo Initializing DB and schema
-    MKDIR %instanceRoot%\server\common\schemaBuilderSource
+    MKDIR !instanceRoot!\server\common\schemaBuilderSource
     REM start /WAIT  cmd /k 
-    echo %instanceRoot%
+    echo !instanceRoot!
   
 
-    echo call %xamppinstllpath%\mysql\bin\mysql -uroot -p -e "CREATE DATABASE elixir;">>%instanceRoot%\tmp\mysql.bat
+    echo call %xamppinstllpath%\mysql\bin\mysql -uroot -p -e "CREATE DATABASE elixir;">>!instanceRoot!\tmp\mysql.bat
     echo pause
 
     REM echo mkdir
     REM start /WAIT cmd /k 
-    echo robocopy /E %instanceRoot%\server\common\models %instanceRoot%\server\common\schemaBuilderSource>>%instanceRoot%\tmp\mysql.bat
+    echo robocopy /E !instanceRoot!\server\common\models !instanceRoot!\server\common\schemaBuilderSource>>!instanceRoot!\tmp\mysql.bat
 
   
-    echo cd %instanceRoot%\server>>%instanceRoot%\tmp\mysql.bat
+    echo cd !instanceRoot!\server>>!instanceRoot!\tmp\mysql.bat
     REM set NODE_ENV=devmysql
     REM start /wait cmd /k 
 
   
     REM PB : TODO -- server filestore connector doesn't honor relative path !? always looks for loopback root project folder !?
     REM TEMP HACK to get the schema created.
-    echo mkdir %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
-    echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>%instanceRoot%\tmp\mysql.bat
+    echo mkdir !instanceRoot!\server\qms\data\filestore>>!instanceRoot!\tmp\mysql.bat
+    echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>!instanceRoot!\tmp\mysql.bat
 
-    echo del /s /q  %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
+    echo del /s /q  !instanceRoot!\server\qms\data\filestore>>!instanceRoot!\tmp\mysql.bat
   
-    echo del /s /q %instanceRoot%\server\common\schemaBuilderSource\*.*>>%instanceRoot%\tmp\mysql.bat
-    echo exit>>%instanceRoot%\tmp\mysql.bat
-    REM del /s /q "%instanceRoot%\server\common\schemaBuilderSource\*.*"
-    REM start /wait cmd /b /c %instanceRoot%\tmp\mysql.bat
-    cmd /C start /wait  %instanceRoot%\tmp\mysql.bat
+    echo del /s /q !instanceRoot!\server\common\schemaBuilderSource\*.*>>!instanceRoot!\tmp\mysql.bat
+    echo exit>>!instanceRoot!\tmp\mysql.bat
+    REM del /s /q "!instanceRoot!\server\common\schemaBuilderSource\*.*"
+    REM start /wait cmd /b /c !instanceRoot!\tmp\mysql.bat
+    cmd /C start /wait  !instanceRoot!\tmp\mysql.bat
  
     REM PB : TODO -- Remove TEMP HACK to get the schema created.
-    REM echo del %instanceRoot%\server\qms\data\filestore>>%instanceRoot%\tmp\mysql.bat
-    REM echo rm  %instanceRoot%\server\common\schemaBuilderSource\*>>%instanceRoot%\tmp\mysql.bat
+    REM echo del !instanceRoot!\server\qms\data\filestore>>!instanceRoot!\tmp\mysql.bat
+    REM echo rm  !instanceRoot!\server\common\schemaBuilderSource\*>>!instanceRoot!\tmp\mysql.bat
 
   
     set step[DBSCHEMA]=true
-    echo set step[DBSCHEMA]=%1>>%instanceRoot%\tmp\run.log.bat
+    echo set step[DBSCHEMA]=%1>>!instanceRoot!\tmp\run.log.bat
 
   
   ) else (
@@ -715,39 +826,39 @@ exit /b
 :INITFORRUNASADMINISTRATOR
   @echo off
 
-  echo @echo off>%instanceRoot%\tmp\runasadmin.bat
-  echo :: BatchGotAdmin>>%instanceRoot%\tmp\runasadmin.bat
-  echo :------------------------------------->>%instanceRoot%\tmp\runasadmin.bat
-  echo REM  --^> Check for permissions>>%instanceRoot%\tmp\runasadmin.bat
-  echo ^>nul 2^>^&1 "%%SYSTEMROOT%%\system32\cacls.exe" "%%SYSTEMROOT%%\system32\config\system">>%instanceRoot%\tmp\runasadmin.bat
-  echo REM -- If error flag set, we do not have admin.>>%instanceRoot%\tmp\runasadmin.bat
-  echo if '%%errorlevel%%' NEQ '0' (>>%instanceRoot%\tmp\runasadmin.bat
-  echo     echo Requesting administrative privileges...>>%instanceRoot%\tmp\runasadmin.bat
-  echo     goto UACPrompt>>%instanceRoot%\tmp\runasadmin.bat
-  echo ) else ( goto gotAdmin )>>%instanceRoot%\tmp\runasadmin.bat
+  echo @echo off>!instanceRoot!\tmp\runasadmin.bat
+  echo :: BatchGotAdmin>>!instanceRoot!\tmp\runasadmin.bat
+  echo :------------------------------------->>!instanceRoot!\tmp\runasadmin.bat
+  echo REM  --^> Check for permissions>>!instanceRoot!\tmp\runasadmin.bat
+  echo ^>nul 2^>^&1 "%%SYSTEMROOT%%\system32\cacls.exe" "%%SYSTEMROOT%%\system32\config\system">>!instanceRoot!\tmp\runasadmin.bat
+  echo REM -- If error flag set, we do not have admin.>>!instanceRoot!\tmp\runasadmin.bat
+  echo if '%%errorlevel%%' NEQ '0' (>>!instanceRoot!\tmp\runasadmin.bat
+  echo     echo Requesting administrative privileges...>>!instanceRoot!\tmp\runasadmin.bat
+  echo     goto UACPrompt>>!instanceRoot!\tmp\runasadmin.bat
+  echo ) else ( goto gotAdmin )>>!instanceRoot!\tmp\runasadmin.bat
 
-  echo :UACPrompt>>%instanceRoot%\tmp\runasadmin.bat
-  echo     echo Set UAC = CreateObject^^("Shell.Application"^^) ^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
-  echo     set params ^= %%^*^:^"^=^"^">>%instanceRoot%\tmp\runasadmin.bat
-  echo     echo UAC.ShellExecute "cmd.exe", "/b /c %%~s0 %%params%%", "%root%", "runas", 1 ^>^> "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
-  echo     "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
-  echo     del "%%temp%%\getadmin.vbs">>%instanceRoot%\tmp\runasadmin.bat
-  echo     exit /B>>%instanceRoot%\tmp\runasadmin.bat
-  echo :gotAdmin>>%instanceRoot%\tmp\runasadmin.bat
-  echo     pushd "%%CD%%">>%instanceRoot%\tmp\runasadmin.bat
-  echo     CD /D "%%~dp0">>%instanceRoot%\tmp\runasadmin.bat
-  echo :-------------------------------------->>%instanceRoot%\tmp\runasadmin.bat
+  echo :UACPrompt>>!instanceRoot!\tmp\runasadmin.bat
+  echo     echo Set UAC = CreateObject^^("Shell.Application"^^) ^> "%%temp%%\getadmin.vbs">>!instanceRoot!\tmp\runasadmin.bat
+  echo     set params ^= %%^*^:^"^=^"^">>!instanceRoot!\tmp\runasadmin.bat
+  echo     echo UAC.ShellExecute "cmd.exe", "/b /c %%~s0 %%params%%", "%root%", "runas", 1 ^>^> "%%temp%%\getadmin.vbs">>!instanceRoot!\tmp\runasadmin.bat
+  echo     "%%temp%%\getadmin.vbs">>!instanceRoot!\tmp\runasadmin.bat
+  echo     del "%%temp%%\getadmin.vbs">>!instanceRoot!\tmp\runasadmin.bat
+  echo     exit /B>>!instanceRoot!\tmp\runasadmin.bat
+  echo :gotAdmin>>!instanceRoot!\tmp\runasadmin.bat
+  echo     pushd "%%CD%%">>!instanceRoot!\tmp\runasadmin.bat
+  echo     CD /D "%%~dp0">>!instanceRoot!\tmp\runasadmin.bat
+  echo :-------------------------------------->>!instanceRoot!\tmp\runasadmin.bat
 
 exit /b
 
 :QUEUEFORRUNASADMINISTRATOR ...
 echo %*
 REM pause
- echo %*>>%instanceRoot%\tmp\runasadmin.bat
+ echo %*>>!instanceRoot!\tmp\runasadmin.bat
 exit /b
 
 :EXECQUEUEDFORRUNASADMINISTRATOR
-  START /W cmd.exe /b /c %instanceRoot%\tmp\runasadmin.bat
+  START /W cmd.exe /b /c !instanceRoot!\tmp\runasadmin.bat
 exit /b
 
 REM Check if app is installed
@@ -810,12 +921,12 @@ exit /b
 
 :SETUACSTEPS <val>
   set step[UACSTEPS]=%1
-  echo set step[UACSTEPS]=%1>>%instanceRoot%\tmp\run.log.bat
+  echo set step[UACSTEPS]=%1>>!instanceRoot!\tmp\run.log.bat
 exit /b
 
 :SETSTEPVAR <VAR>
   set step[%1]=true
-  echo set step[%1]=true>>%instanceRoot%\tmp\run.log.bat
+  echo set step[%1]=true>>!instanceRoot!\tmp\run.log.bat
 exit /b
 
 :INSTALLWINBUILDTOOLS
