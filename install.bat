@@ -510,7 +510,7 @@ if "!step[UACSTEPS]!"=="false" (
       set cachedpath=
       call :CHECKRUNNABLE python 
       if "!existcheck!"=="false" (
-            set cachedpath="C:\python27;"
+            set cachedpath=C:\python27;
             set check=true
             echo =========inside python
       )
