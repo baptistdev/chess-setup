@@ -636,7 +636,7 @@ exit /b
           ember-masonry-grid
           bbhverse
           server
-          qms
+          client
           ember-searchable-select
           loopback-component-jsonapi
           config
@@ -712,8 +712,8 @@ exit /b
         :: NPM INSTALL
         for %%a in (
           server
-          qms
-          qms/server
+          client
+          client/server
  
         ) do ( 
           del !instanceRoot!\%%a\package-lock.json
@@ -729,7 +729,7 @@ exit /b
 
       REM BOWER INSTALL
       for %%a in (
-        qms
+        client
       ) do ( 
         cd !instanceRoot!\%%a
         echo %pwd%
@@ -741,8 +741,8 @@ exit /b
       del "!root!\instanceroot.txt"
       echo " copying roboto"
       REM pause
-      mkdir !instanceRoot!\qms\bower_components\materialize\dist\fonts\roboto
-      xcopy \\%localREPO%\repos\roboto !instanceRoot!\qms\bower_components\materialize\dist\fonts\roboto
+      mkdir !instanceRoot!\client\bower_components\materialize\dist\fonts\roboto
+      xcopy \\%localREPO%\repos\roboto !instanceRoot!\client\bower_components\materialize\dist\fonts\roboto
     )
 
 
@@ -766,7 +766,7 @@ exit /b
 
 :INITDBANDSCHEMA
   if "!step[DBSCHEMA]!"=="false" (
-   MKDIR !instanceRoot!\qms\data\filestore
+   MKDIR !instanceRoot!\client\data\filestore
     echo Initializing DB and schema
     MKDIR !instanceRoot!\server\common\schemaBuilderSource
     REM start /WAIT  cmd /k 
@@ -788,10 +788,10 @@ exit /b
   
     REM PB : TODO -- server filestore connector doesn't honor relative path !? always looks for loopback root project folder !?
     REM TEMP HACK to get the schema created.
-    echo mkdir !instanceRoot!\server\qms\data\filestore>>!instanceRoot!\tmp\mysql.bat
-    echo cmd /V /C "SET NODE_ENV=devmysql&& node sage-rw\bin\schemabuilder.js">>!instanceRoot!\tmp\mysql.bat
+    echo mkdir !instanceRoot!\server\client\data\filestore>>!instanceRoot!\tmp\mysql.bat
+    echo cmd /V /C "SET NODE_ENV=devmysql&& node elixir\bin\schemabuilder.js">>!instanceRoot!\tmp\mysql.bat
 
-    echo del /s /q  !instanceRoot!\server\qms\data\filestore>>!instanceRoot!\tmp\mysql.bat
+    echo del /s /q  !instanceRoot!\server\client\data\filestore>>!instanceRoot!\tmp\mysql.bat
   
     echo del /s /q !instanceRoot!\server\common\schemaBuilderSource\*.*>>!instanceRoot!\tmp\mysql.bat
     echo exit>>!instanceRoot!\tmp\mysql.bat
