@@ -163,7 +163,7 @@ if exist !instanceRoot!\config.bat (
     set publicREPOHTTPSPwd=
 
   if ""=="%localREPO%" (
-    set /p localREPO="UNC Share for Local repo [Eg: 192.168.1.22/repos] : "
+    set /p localREPO="UNC Share for Local repo [Eg: 192.168.1.22] : "
     REM echo !localREPO!
     REM pause
   )
