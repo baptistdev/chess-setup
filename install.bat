@@ -524,14 +524,14 @@ if "!step[UACSTEPS]!"=="false" (
 
       echo ---------------------------currentpath-------------
       REM echo !path!
-      set path=!cachedpath!;!path!
+      set path=!appdata!\npm;!cachedpath!;!path!
       echo -----------------with cachedpath-----------------------
       REM echo !path!
       REM set /a i=-1
       For %%M in ("!path:;=";"!") do (
         REM   set /a i=!i!+1
         set arr[%%~M]=%%~M
-        echo arr[%%~M] 
+        REM echo arr[%%~M] 
       )
 
       REM For /L %%x in (0 1 !i!) do ( 
@@ -539,13 +539,27 @@ if "!step[UACSTEPS]!"=="false" (
       REM )
       Set filteredpath=
       For /f "tokens=2 delims==" %%M in ('Set arr[') do (
-          REM echo --%%~M--
+          echo %%~M
+          REM set var1last3=%%~M
+
+          REM set  adddd=!var1last3:~-1!
+          REM REM echo !adddd! 
+          REM REM pause
+          REM set var2=\
+          REM if !adddd! == !var2! (
+          REM echo Match
+          REM ) else (
+          REM REM echo No Match
+          REM  Set "filteredpath=!filteredpath!;!var1last3!"
+          REM )
+
           Set "filteredpath=!filteredpath!;%%~M"
           REM echo FFFFFFFF!filteredpath!
       )
       echo -----------------filtered-----------------------
       echo !filteredpath!
       set path=!filteredpath!;
+      REM  set path=!appdata!\npm;!filteredpath!;
       REM set addxtrachar=!filteredpath!\
       REM set finalpath=!addxtrachar:~1,-1!
 
@@ -632,10 +646,11 @@ exit /b
 
       if "!step[REPOSCLONED]!"=="false" (
         (for %%a in (
-
+          data
           ember-masonry-grid
           bbhverse
-          server
+          chess-server-lib
+          elixir-server
           client
           ember-searchable-select
           loopback-component-jsonapi
@@ -711,7 +726,10 @@ exit /b
       if "!step[PROJECTNPMINSTALL]!"=="false" (
         :: NPM INSTALL
         for %%a in (
-          server
+          
+          bbhverse
+          chess-server-lib
+          elixir-server
           client
           client/server
  
