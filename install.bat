@@ -649,8 +649,6 @@ exit /b
           data
           ember-masonry-grid
           bbhverse
-          clientverse
-          serververse
           chess-server-lib
           elixir-server
           client
@@ -730,8 +728,6 @@ exit /b
         for %%a in (
           
           bbhverse
-          clientverse
-          serververse
           chess-server-lib
           elixir-server
           client
